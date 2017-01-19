@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" activate="activate" deactivate="deactivate" name="org.eclipse.kura.cloud.aws.DeviceShadowServiceImpl">
+   <implementation class="org.eclipse.kura.cloud.aws.DeviceShadowServiceImpl"/>
+   <reference 
+   		bind="setDataService"
+   		cardinality="1..1"
+   		interface="org.eclipse.kura.data.DataService"
+   		name="DataService"
+   		policy="static"
+   		unbind="unsetDataService"/>
+   <property name="DataService.target"
+   		type="String"
+   		value="(kura.service.pid=org.eclipse.kura.data.DataService-AWS)"/>
+   <reference 
+   		bind="setDataTransportService"
+   		cardinality="1..1"
+   		interface="org.eclipse.kura.data.DataTransportService"
+   		name="DataTransportService"
+   		policy="static"/>
+   <property name="DataTransportService.target" 
+   		type="String"
+   		value="(kura.service.pid=org.eclipse.kura.core.data.transport.mqtt.MqttDataTransport-AWS)"/>
+   <service>
+      <provide interface="org.eclipse.kura.cloud.aws.DeviceShadowService"/>
+   </service>
+</scr:component>
