@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Export-Package: Moka7;version="1.0.3"
+Bundle-SymbolicName: org.moka7
+Bundle-Version: 1.0.3
+Bundle-Name: org.moka7
+Built-By: nicola.timeus
+Bundle-ManifestVersion: 2
+Bnd-LastModified: 1484316601651
+Created-By: Apache Maven Bundle Plugin
+Tool: Bnd-1.43.0
+Build-Jdk: 1.8.0_111
+
