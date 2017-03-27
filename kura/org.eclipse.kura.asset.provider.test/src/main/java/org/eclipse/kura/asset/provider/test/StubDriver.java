@@ -9,19 +9,19 @@
  *******************************************************************************/
 package org.eclipse.kura.asset.provider.test;
 
-import static org.eclipse.kura.driver.DriverFlag.READ_SUCCESSFUL;
-import static org.eclipse.kura.driver.DriverFlag.WRITE_SUCCESSFUL;
+import static org.eclipse.kura.channel.ChannelFlag.READ_SUCCESSFUL;
+import static org.eclipse.kura.channel.ChannelFlag.WRITE_SUCCESSFUL;
 
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.kura.channel.ChannelConstants;
+import org.eclipse.kura.channel.ChannelEvent;
+import org.eclipse.kura.channel.ChannelRecord;
+import org.eclipse.kura.channel.ChannelStatus;
+import org.eclipse.kura.channel.listener.ChannelListener;
 import org.eclipse.kura.driver.ChannelDescriptor;
 import org.eclipse.kura.driver.Driver;
-import org.eclipse.kura.driver.DriverConstants;
-import org.eclipse.kura.driver.DriverEvent;
-import org.eclipse.kura.driver.DriverRecord;
-import org.eclipse.kura.driver.DriverStatus;
-import org.eclipse.kura.driver.listener.DriverListener;
 import org.eclipse.kura.type.DataType;
 import org.eclipse.kura.type.TypedValues;
 
@@ -53,14 +53,14 @@ public final class StubDriver implements Driver {
 
     /** {@inheritDoc} */
     @Override
-    public List<DriverRecord> read(final List<DriverRecord> records) throws ConnectionException {
+    public List<ChannelRecord> read(final List<ChannelRecord> records) throws ConnectionException {
         if (!this.isConnected) {
             this.connect();
         }
 
-        for (final DriverRecord record : records) {
+        for (final ChannelRecord record : records) {
             final Map<String, Object> driverRecordConf = record.getChannelConfig();
-            switch ((DataType) driverRecordConf.get(DriverConstants.CHANNEL_VALUE_TYPE.value())) {
+            switch ((DataType) driverRecordConf.get(ChannelConstants.CHANNEL_VALUE_TYPE.value())) {
             case BOOLEAN:
                 record.setValue(TypedValues.newBooleanValue(true));
                 break;
@@ -88,38 +88,38 @@ public final class StubDriver implements Driver {
             default:
                 break;
             }
-            record.setDriverStatus(new DriverStatus(READ_SUCCESSFUL, null, null));
+            record.setChannelStatus(new ChannelStatus(READ_SUCCESSFUL, null, null));
         }
         return records;
     }
 
     /** {@inheritDoc} */
     @Override
-    public void registerDriverListener(final Map<String, Object> channelConfig, final DriverListener listener)
+    public void registerDriverListener(final Map<String, Object> channelConfig, final ChannelListener listener)
             throws ConnectionException {
-        final DriverRecord record = new DriverRecord();
+        final ChannelRecord record = new ChannelRecord();
         record.setChannelConfig(channelConfig);
         record.setValue(TypedValues.newIntegerValue(1));
-        record.setDriverStatus(new DriverStatus(READ_SUCCESSFUL, null, null));
+        record.setChannelStatus(new ChannelStatus(READ_SUCCESSFUL, null, null));
         record.setTimestamp(System.currentTimeMillis());
-        listener.onDriverEvent(new DriverEvent(record));
+        listener.onDriverEvent(new ChannelEvent(record));
     }
 
     /** {@inheritDoc} */
     @Override
-    public void unregisterDriverListener(final DriverListener listener) throws ConnectionException {
+    public void unregisterDriverListener(final ChannelListener listener) throws ConnectionException {
         // not used
     }
 
     /** {@inheritDoc} */
     @Override
-    public List<DriverRecord> write(final List<DriverRecord> records) throws ConnectionException {
+    public List<ChannelRecord> write(final List<ChannelRecord> records) throws ConnectionException {
         if (!this.isConnected) {
             this.connect();
         }
 
-        for (final DriverRecord record : records) {
-            record.setDriverStatus(new DriverStatus(WRITE_SUCCESSFUL, null, null));
+        for (final ChannelRecord record : records) {
+            record.setChannelStatus(new ChannelStatus(WRITE_SUCCESSFUL, null, null));
         }
         return records;
     }

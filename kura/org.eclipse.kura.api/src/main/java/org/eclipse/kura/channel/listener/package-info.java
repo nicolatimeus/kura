@@ -8,8 +8,8 @@
  * 
  *******************************************************************************/
 /**
- * Provides all necessary listeners for Kura Asset Component Model
+ * Provides all necessary listeners for Drivers of Kura Asset Component Model
  *
  * @since 1.0.10
  */
-package org.eclipse.kura.asset.listener;
+package org.eclipse.kura.channel.listener;

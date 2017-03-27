@@ -83,7 +83,7 @@ public final class AssetTest {
     public void testChannelProperties() {
         final AssetConfiguration assetConfiguration = asset.getAssetConfiguration();
         assertNotNull(assetConfiguration);
-        final Map<Long, Channel> channels = assetConfiguration.getAssetChannels();
+        final Map<Long, Channel> channels = assetConfiguration.getAssetChannelsById();
         assertEquals(2, channels.size());
         final Channel channel1 = channels.get(1L);
         assertEquals(1L, channel1.getId());

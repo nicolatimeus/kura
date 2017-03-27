@@ -15,7 +15,9 @@ package org.eclipse.kura.asset;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.kura.annotation.Immutable;
 import org.eclipse.kura.annotation.ThreadSafe;
@@ -87,7 +89,9 @@ public class AssetConfiguration {
      * The list of channels associated with this asset. The association denotes
      * channel ID and its actual object reference pair.
      */
-    private final Map<Long, Channel> assetChannels;
+    private final Map<Long, Channel> assetChannelsById;
+
+    private final Map<String, Channel> assetChannelsByName;
 
     /** the asset description. */
     private String assetDescription;
@@ -114,7 +118,12 @@ public class AssetConfiguration {
 
         this.assetDescription = description;
         this.driverPid = driverPid;
-        this.assetChannels = channels;
+        this.assetChannelsById = channels;
+
+        this.assetChannelsByName = new HashMap<>();
+        for (Entry<Long, Channel> channel : channels.entrySet()) {
+            this.assetChannelsByName.put(channel.getValue().getName(), channel.getValue());
+        }
     }
 
     /**
@@ -122,8 +131,17 @@ public class AssetConfiguration {
      *
      * @return the asset channels
      */
-    public Map<Long, Channel> getAssetChannels() {
-        return this.assetChannels;
+    public Map<Long, Channel> getAssetChannelsById() {
+        return this.assetChannelsById;
+    }
+
+    /**
+     * Gets the asset channels.
+     *
+     * @return the asset channels
+     */
+    public Map<String, Channel> getAssetChannelsByName() {
+        return this.assetChannelsByName;
     }
 
     /**
@@ -160,7 +178,7 @@ public class AssetConfiguration {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return "AssetConfiguration [channels=" + this.assetChannels + ", description=" + this.assetDescription
+        return "AssetConfiguration [channels=" + this.assetChannelsById + ", description=" + this.assetDescription
                 + ", driverPid=" + this.driverPid + "]";
     }
 }

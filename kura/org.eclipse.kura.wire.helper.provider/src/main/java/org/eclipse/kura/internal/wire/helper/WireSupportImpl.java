@@ -13,8 +13,6 @@
  *******************************************************************************/
 package org.eclipse.kura.internal.wire.helper;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -47,9 +45,11 @@ final class WireSupportImpl implements WireSupport {
 
     private List<Wire> outgoingWires;
 
-    private final WireHelperService wireHelperService;
-
     private final WireComponent wireSupporter;
+
+    private final String emitterPid;
+
+    private final String pid;
 
     /**
      * Instantiates a new wire support implementation.
@@ -65,14 +65,15 @@ final class WireSupportImpl implements WireSupport {
      */
     WireSupportImpl(final WireComponent wireSupporter, final WireHelperService wireHelperService,
             final EventAdmin eventAdmin) {
-        requireNonNull(wireSupporter, message.wireSupportedComponentNonNull());
-        requireNonNull(wireHelperService, message.wireHelperServiceNonNull());
-        requireNonNull(eventAdmin, message.eventAdminNonNull());
+        // requireNonNull(wireSupporter, message.wireSupportedComponentNonNull());
+        // requireNonNull(wireHelperService, message.wireHelperServiceNonNull());
+        // requireNonNull(eventAdmin, message.eventAdminNonNull());
 
         this.outgoingWires = CollectionUtil.newArrayList();
         this.incomingWires = CollectionUtil.newArrayList();
         this.wireSupporter = wireSupporter;
-        this.wireHelperService = wireHelperService;
+        this.emitterPid = wireHelperService.getServicePid(wireSupporter);
+        this.pid = wireHelperService.getPid(wireSupporter);
         this.eventAdmin = eventAdmin;
     }
 
@@ -85,10 +86,8 @@ final class WireSupportImpl implements WireSupport {
     /** {@inheritDoc} */
     @Override
     public synchronized void emit(final List<WireRecord> wireRecords) {
-        requireNonNull(wireRecords, message.wireRecordsNonNull());
+        // requireNonNull(wireRecords, message.wireRecordsNonNull());
         if (this.wireSupporter instanceof WireEmitter) {
-            final String emitterPid = this.wireHelperService.getServicePid(this.wireSupporter);
-            final String pid = this.wireHelperService.getPid(this.wireSupporter);
             final WireEnvelope wei = new WireEnvelope(emitterPid, wireRecords);
             for (final Wire wire : this.outgoingWires) {
                 wire.update(wei);
@@ -132,7 +131,7 @@ final class WireSupportImpl implements WireSupport {
     /** {@inheritDoc} */
     @Override
     public void updated(final Wire wire, final Object value) {
-        requireNonNull(wire, message.wireNonNull());
+        // requireNonNull(wire, message.wireNonNull());
         if (value instanceof WireEnvelope && this.wireSupporter instanceof WireReceiver) {
             ((WireReceiver) this.wireSupporter).onWireReceive((WireEnvelope) value);
         }

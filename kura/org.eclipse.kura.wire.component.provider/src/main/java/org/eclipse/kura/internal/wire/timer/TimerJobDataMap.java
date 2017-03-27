@@ -13,7 +13,6 @@
  *******************************************************************************/
 package org.eclipse.kura.internal.wire.timer;
 
-import org.eclipse.kura.wire.WireSupport;
 import org.quartz.JobDataMap;
 
 /**
@@ -24,25 +23,13 @@ public final class TimerJobDataMap extends JobDataMap {
 
     private static final long serialVersionUID = -2191522128203525408L;
 
-    /** The Constant to be used in the map. */
-    private static final String WIRE_SUPPORT = "WireSupport";
+    private static final String TIMER_EMITTER = "T";
 
-    /**
-     * Gets the wire support.
-     *
-     * @return the wire support
-     */
-    public WireSupport getWireSupport() {
-        return (WireSupport) super.get(WIRE_SUPPORT);
+    public TimerEmitter getTimerEmitter() {
+        return (TimerEmitter) super.get(TIMER_EMITTER);
     }
 
-    /**
-     * Put wire support.
-     *
-     * @param wireSupport
-     *            the wire support
-     */
-    public void putWireSupport(final WireSupport wireSupport) {
-        super.put(WIRE_SUPPORT, wireSupport);
+    public void putTimerEmitter(final TimerEmitter timerEmitter) {
+        super.put(TIMER_EMITTER, timerEmitter);
     }
 }

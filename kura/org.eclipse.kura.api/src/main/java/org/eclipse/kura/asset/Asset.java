@@ -13,7 +13,8 @@ import java.util.List;
 
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.KuraRuntimeException;
-import org.eclipse.kura.asset.listener.AssetListener;
+import org.eclipse.kura.channel.ChannelRecord;
+import org.eclipse.kura.channel.listener.ChannelListener;
 
 /**
  * This interface Asset provides higher level abstraction to operate or
@@ -69,7 +70,7 @@ public interface Asset {
      * @return the list of asset records which comprises the currently read
      *         value in case of success or the reason of failure
      */
-    public List<AssetRecord> read(List<Long> channelIds) throws KuraException;
+    public List<ChannelRecord> read(List<Long> channelIds) throws KuraException;
 
     /**
      * Performs a read on all READ or READ_WRITE channels that are defined on this asset and returns
@@ -88,7 +89,7 @@ public interface Asset {
      * @return the list of asset records which comprises the currently read
      *         value in case of success or the reason of failure
      */
-    public List<AssetRecord> readAllChannels() throws KuraException;
+    public List<ChannelRecord> readAllChannels() throws KuraException;
 
     /**
      * Registers asset listener for the provided channel name for a monitor
@@ -117,7 +118,7 @@ public interface Asset {
      *             channel ID is less than or
      *             equal to zero
      */
-    public void registerAssetListener(long channelId, AssetListener assetListener) throws KuraException;
+    public void registerChannelListener(long channelId, ChannelListener assetListener) throws KuraException;
 
     /**
      * Unregisters a already registered asset listener which has been registered
@@ -135,7 +136,7 @@ public interface Asset {
      * @throws NullPointerException
      *             if argument is null
      */
-    public void unregisterAssetListener(AssetListener assetListener) throws KuraException;
+    public void unregisterChannelListener(ChannelListener assetListener) throws KuraException;
 
     /**
      * Writes the data to the provided communication channels that correspond to
@@ -166,6 +167,6 @@ public interface Asset {
      * @return the list of asset records which comprises the status of the write
      *         operations
      */
-    public List<AssetRecord> write(List<AssetRecord> assetRecords) throws KuraException;
+    public List<ChannelRecord> write(List<ChannelRecord> assetRecords) throws KuraException;
 
 }

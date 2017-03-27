@@ -17,7 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.kura.KuraRuntimeException;
-import org.eclipse.kura.driver.listener.DriverListener;
+import org.eclipse.kura.channel.ChannelRecord;
+import org.eclipse.kura.channel.listener.ChannelListener;
 
 /**
  * The Interface Driver is the main interface that all Kura specific
@@ -28,7 +29,7 @@ import org.eclipse.kura.driver.listener.DriverListener;
  * configurable component of the actual driver which is internally managed by
  * the OSGi Configuration Admin service
  *
- * @see DriverRecord
+ * @see ChannelRecord
  * @see ChannelDescriptor
  *
  * @noimplement This interface is not intended to be implemented by clients.
@@ -142,7 +143,7 @@ public interface Driver {
      *             error code {@code KuraErrorCode#OPERATION_NOT_SUPPORTED}
      *             needs to be set in the thrown {@link KuraRuntimeException}
      */
-    public void read(List<DriverRecord> records) throws ConnectionException;
+    public void read(List<ChannelRecord> records) throws ConnectionException;
 
     /**
      * Registers driver listener for the provided channel configuration for a
@@ -161,7 +162,7 @@ public interface Driver {
      *             error code {@code KuraErrorCode#OPERATION_NOT_SUPPORTED}
      *             needs to be set in the thrown {@link KuraRuntimeException}
      */
-    public void registerDriverListener(Map<String, Object> channelConfig, DriverListener listener)
+    public void registerDriverListener(Map<String, Object> channelConfig, ChannelListener listener)
             throws ConnectionException;
 
     /**
@@ -179,7 +180,7 @@ public interface Driver {
      *             error code {@code KuraErrorCode#OPERATION_NOT_SUPPORTED}
      *             needs to be set in the thrown {@link KuraRuntimeException}
      */
-    public void unregisterDriverListener(DriverListener listener) throws ConnectionException;
+    public void unregisterDriverListener(ChannelListener listener) throws ConnectionException;
 
     /**
      * Writes the data channels that correspond to the given driver records. The
@@ -205,7 +206,7 @@ public interface Driver {
      *             error code {@code KuraErrorCode#OPERATION_NOT_SUPPORTED}
      *             needs to be set in the thrown {@link KuraRuntimeException}
      */
-    public void write(List<DriverRecord> records) throws ConnectionException;
+    public void write(List<ChannelRecord> records) throws ConnectionException;
 
     /**
      * This method allows the driver to perform protocol specific optimizations in order to accelerate the execution of
@@ -215,7 +216,7 @@ public interface Driver {
      * In order to improve efficiency a driver should validate the channel configuration of the provided channels during
      * this method call.
      * It is also permitted to the implementation of the {@link PreparedRead#execute()} and
-     * {@link PreparedRead#getDriverRecords()} methods to return the same {@link DriverRecord} instances provided as an
+     * {@link PreparedRead#getDriverRecords()} methods to return the same {@link ChannelRecord} instances provided as an
      * argument to this method.
      * If the validation of the channel configuration fails for some channels, the driver must not throw an exception
      * but it is required to return driver records with proper error flags set as a result of the
@@ -228,5 +229,5 @@ public interface Driver {
      * @throws NullPointerException
      *             if the provided list is null
      */
-    public PreparedRead prepareRead(List<DriverRecord> records);
+    public PreparedRead prepareRead(List<ChannelRecord> records);
 }

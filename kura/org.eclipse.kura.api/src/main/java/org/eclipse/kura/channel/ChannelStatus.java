@@ -11,7 +11,7 @@
  *  Amit Kumar Mondal
  *
  *******************************************************************************/
-package org.eclipse.kura.asset;
+package org.eclipse.kura.channel;
 
 import static java.util.Objects.requireNonNull;
 
@@ -27,10 +27,10 @@ import org.eclipse.kura.annotation.ThreadSafe;
  */
 @Immutable
 @ThreadSafe
-public class AssetStatus {
+public class ChannelStatus {
 
-    /** The asset flag. */
-    private final AssetFlag assetFlag;
+    /** The driver flag. */
+    private final ChannelFlag driverFlag;
 
     /** The exception instance if needed. */
     @Nullable
@@ -43,14 +43,14 @@ public class AssetStatus {
     /**
      * Instantiates a new status.
      *
-     * @param assetFlag
-     *            the asset flag
+     * @param driverFlag
+     *            the driver flag
      * @throws NullPointerException
-     *             if the asset flag is null
+     *             if the driver flag is null
      */
-    public AssetStatus(final AssetFlag assetFlag) {
-        requireNonNull(assetFlag, "Asset Flag cannot be null");
-        this.assetFlag = assetFlag;
+    public ChannelStatus(final ChannelFlag driverFlag) {
+        requireNonNull(driverFlag, "Driver Flag cannot be null");
+        this.driverFlag = driverFlag;
         this.exceptionMessage = null;
         this.exception = null;
     }
@@ -58,19 +58,19 @@ public class AssetStatus {
     /**
      * Instantiates a new status.
      *
-     * @param assetFlag
-     *            the asset flag
+     * @param driverFlag
+     *            the driver flag
      * @param exceptionMessage
      *            the exception message
      * @param exception
      *            the exception
      * @throws NullPointerException
-     *             if the asset flag is null
+     *             if the driver flag is null
      */
-    public AssetStatus(final AssetFlag assetFlag, @Nullable final String exceptionMessage,
+    public ChannelStatus(final ChannelFlag driverFlag, @Nullable final String exceptionMessage,
             @Nullable final Exception exception) {
-        requireNonNull(assetFlag, "Driver Flag cannot be null");
-        this.assetFlag = assetFlag;
+        requireNonNull(driverFlag, "Driver Flag cannot be null");
+        this.driverFlag = driverFlag;
         this.exceptionMessage = exceptionMessage;
         this.exception = exception;
     }
@@ -87,8 +87,8 @@ public class AssetStatus {
         if (this.getClass() != obj.getClass()) {
             return false;
         }
-        final AssetStatus other = (AssetStatus) obj;
-        if (this.assetFlag != other.assetFlag) {
+        final ChannelStatus other = (ChannelStatus) obj;
+        if (this.driverFlag != other.driverFlag) {
             return false;
         }
         if (this.exception == null) {
@@ -109,12 +109,12 @@ public class AssetStatus {
     }
 
     /**
-     * Gets the asset flag.
+     * Gets the driver flag.
      *
-     * @return the asset flag
+     * @return the driver flag
      */
-    public AssetFlag getAssetFlag() {
-        return this.assetFlag;
+    public ChannelFlag getChannelFlag() {
+        return this.driverFlag;
     }
 
     /**
@@ -140,7 +140,7 @@ public class AssetStatus {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = (prime * result) + ((this.assetFlag == null) ? 0 : this.assetFlag.hashCode());
+        result = (prime * result) + ((this.driverFlag == null) ? 0 : this.driverFlag.hashCode());
         result = (prime * result) + ((this.exception == null) ? 0 : this.exception.hashCode());
         result = (prime * result) + ((this.exceptionMessage == null) ? 0 : this.exceptionMessage.hashCode());
         return result;
@@ -149,7 +149,7 @@ public class AssetStatus {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return "Status [driverFlag=" + this.assetFlag + ", exception=" + this.exception + ", exceptionMessage="
+        return "Status [driverFlag=" + this.driverFlag + ", exception=" + this.exception + ", exceptionMessage="
                 + this.exceptionMessage + "]";
     }
 

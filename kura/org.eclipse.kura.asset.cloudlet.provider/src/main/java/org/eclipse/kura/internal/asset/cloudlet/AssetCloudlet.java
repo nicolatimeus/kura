@@ -14,21 +14,28 @@
 package org.eclipse.kura.internal.asset.cloudlet;
 
 import static java.util.Objects.requireNonNull;
-import static org.eclipse.kura.type.DataType.*;
+import static org.eclipse.kura.type.DataType.BOOLEAN;
+import static org.eclipse.kura.type.DataType.BYTE;
+import static org.eclipse.kura.type.DataType.DOUBLE;
+import static org.eclipse.kura.type.DataType.INTEGER;
+import static org.eclipse.kura.type.DataType.LONG;
+import static org.eclipse.kura.type.DataType.SHORT;
+import static org.eclipse.kura.type.DataType.STRING;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.asset.Asset;
 import org.eclipse.kura.asset.AssetConfiguration;
-import org.eclipse.kura.asset.AssetFlag;
-import org.eclipse.kura.asset.AssetRecord;
 import org.eclipse.kura.asset.AssetService;
-import org.eclipse.kura.asset.AssetStatus;
 import org.eclipse.kura.asset.Channel;
+import org.eclipse.kura.channel.ChannelFlag;
+import org.eclipse.kura.channel.ChannelRecord;
+import org.eclipse.kura.channel.ChannelStatus;
 import org.eclipse.kura.cloud.CloudClient;
 import org.eclipse.kura.cloud.CloudService;
 import org.eclipse.kura.cloud.Cloudlet;
@@ -248,7 +255,7 @@ public final class AssetCloudlet extends Cloudlet {
 
         final Asset asset = this.assets.get(assetPid);
         final AssetConfiguration configuration = asset.getAssetConfiguration();
-        final Map<Long, Channel> assetConfiguredChannels = configuration.getAssetChannels();
+        final Map<Long, Channel> assetConfiguredChannels = configuration.getAssetChannelsById();
         for (final Map.Entry<Long, Channel> entry : assetConfiguredChannels.entrySet()) {
             final Channel channel = entry.getValue();
             respPayload.addMetric(String.valueOf(channel.getId()), channel.getName());
@@ -286,31 +293,32 @@ public final class AssetCloudlet extends Cloudlet {
         final String channelId = resources[2];
         final Asset asset = this.assets.get(assetPid);
         final AssetConfiguration configuration = asset.getAssetConfiguration();
-        final Map<Long, Channel> assetConfiguredChannels = configuration.getAssetChannels();
+        final Map<Long, Channel> assetConfiguredChannels = configuration.getAssetChannelsById();
         final long id = Long.parseLong(channelId);
         if ((assetConfiguredChannels != null) && (id != 0)) {
-            final AssetRecord assetRecord = new AssetRecord(id);
+            final ChannelRecord channelRecord = new ChannelRecord(null, id);
             final String userValue = (String) reqPayload.getMetric("value");
             final String userType = (String) reqPayload.getMetric("type");
             boolean flag = true;
             try {
-                this.wrapValue(assetRecord, userValue, userType);
+                this.wrapValue(channelRecord, userValue, userType);
             } catch (final IllegalArgumentException e) {
                 flag = false;
-                assetRecord.setAssetStatus(new AssetStatus(AssetFlag.FAILURE, message.valueTypeConversionError(), e));
-                assetRecord.setTimestamp(System.currentTimeMillis());
+                channelRecord.setChannelStatus(
+                        new ChannelStatus(ChannelFlag.FAILURE, message.valueTypeConversionError(), e));
+                channelRecord.setTimestamp(System.currentTimeMillis());
             }
 
-            List<AssetRecord> assetRecords = Arrays.asList(assetRecord);
+            List<ChannelRecord> channelRecords = Arrays.asList(channelRecord);
             try {
                 if (flag) {
-                    assetRecords = asset.write(assetRecords);
+                    channelRecords = asset.write(channelRecords);
                 }
             } catch (final KuraException e) {
                 // if connection exception occurs
                 respPayload.addMetric(message.errorMessage(), message.connectionException());
             }
-            this.prepareResponse(respPayload, assetRecords);
+            this.prepareResponse(respPayload, channelRecords);
         }
     }
 
@@ -347,7 +355,7 @@ public final class AssetCloudlet extends Cloudlet {
         }
         final Asset asset = this.assets.get(assetPid);
         final AssetConfiguration configuration = asset.getAssetConfiguration();
-        final Map<Long, Channel> assetConfiguredChannels = configuration.getAssetChannels();
+        final Map<Long, Channel> assetConfiguredChannels = configuration.getAssetChannelsById();
 
         final List<Long> channelIdsToRead = CollectionUtil.newArrayList();
         long id;
@@ -361,7 +369,7 @@ public final class AssetCloudlet extends Cloudlet {
             }
         }
         if (assetConfiguredChannels != null) {
-            List<AssetRecord> assetRecords = null;
+            List<ChannelRecord> assetRecords = null;
             try {
                 assetRecords = asset.read(channelIdsToRead);
             } catch (final KuraException e) {
@@ -385,16 +393,16 @@ public final class AssetCloudlet extends Cloudlet {
      * @throws NullPointerException
      *             if any of the arguments is null
      */
-    private void prepareResponse(final KuraResponsePayload respPayload, final List<AssetRecord> assetRecords) {
+    private void prepareResponse(final KuraResponsePayload respPayload, final List<ChannelRecord> assetRecords) {
         requireNonNull(respPayload, message.respPayloadNonNull());
         requireNonNull(assetRecords, message.assetRecordsNonNull());
 
-        for (final AssetRecord assetRecord : assetRecords) {
+        for (final ChannelRecord assetRecord : assetRecords) {
             final TypedValue<?> assetValue = assetRecord.getValue();
             final String value = (assetValue != null) ? String.valueOf(assetValue.getValue()) : "ERROR";
             String errorText;
-            final AssetStatus assetStatus = assetRecord.getAssetStatus();
-            final AssetFlag assetFlag = assetStatus.getAssetFlag();
+            final ChannelStatus assetStatus = assetRecord.getChannelStatus();
+            final ChannelFlag assetFlag = assetStatus.getChannelFlag();
 
             final String prefix = assetRecord.getChannelId() + ".";
             respPayload.addMetric(prefix + message.flag(), assetFlag.toString());
@@ -402,7 +410,7 @@ public final class AssetCloudlet extends Cloudlet {
             respPayload.addMetric(prefix + message.timestamp(), assetRecord.getTimestamp());
             respPayload.addMetric(prefix + message.value(), value);
 
-            if (assetFlag == AssetFlag.FAILURE) {
+            if (assetFlag == ChannelFlag.FAILURE) {
                 final String exceptionMessage = assetStatus.getExceptionMessage();
                 errorText = (exceptionMessage != null) ? exceptionMessage : "";
                 respPayload.addMetric(prefix + message.errorMessage(), errorText);
@@ -414,7 +422,7 @@ public final class AssetCloudlet extends Cloudlet {
      * Wraps the provided user provided value to the an instance of
      * {@link TypedValue} in the asset record
      *
-     * @param assetRecord
+     * @param channelRecord
      *            the asset record to contain the typed value
      * @param userValue
      *            the value to wrap
@@ -427,8 +435,8 @@ public final class AssetCloudlet extends Cloudlet {
      * @throws IllegalArgumentException
      *             if the {@code userType} cannot be converted to a {@link DataType}.
      */
-    private void wrapValue(final AssetRecord assetRecord, final String userValue, final String userType) {
-        requireNonNull(assetRecord, message.assetRecordNonNull());
+    private void wrapValue(final ChannelRecord channelRecord, final String userValue, final String userType) {
+        requireNonNull(channelRecord, message.assetRecordNonNull());
         requireNonNull(userValue, message.valueNonNull());
         requireNonNull(userType, message.typeNonNull());
 
@@ -461,6 +469,6 @@ public final class AssetCloudlet extends Cloudlet {
             throw nfe;
         }
 
-        assetRecord.setValue(value);
+        channelRecord.setValue(value);
     }
 }

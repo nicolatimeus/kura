@@ -11,7 +11,7 @@
  *  Amit Kumar Mondal
  *
  *******************************************************************************/
-package org.eclipse.kura.driver;
+package org.eclipse.kura.channel;
 
 import static java.util.Objects.requireNonNull;
 
@@ -24,13 +24,13 @@ import org.eclipse.kura.annotation.NotThreadSafe;
  * @noextend This class is not intended to be extended by clients.
  */
 @NotThreadSafe
-public class DriverEvent {
+public class ChannelEvent {
 
     /**
      * Represents the driver record as triggered due to the driver monitor
      * operation.
      */
-    private final DriverRecord driverRecord;
+    private final ChannelRecord channelRecord;
 
     /**
      * Instantiates a new driver event
@@ -40,9 +40,9 @@ public class DriverEvent {
      * @throws NullPointerException
      *             if the argument is null
      */
-    public DriverEvent(final DriverRecord driverRecord) {
+    public ChannelEvent(final ChannelRecord driverRecord) {
         requireNonNull(driverRecord, "Driver record cannot be null");
-        this.driverRecord = driverRecord;
+        this.channelRecord = driverRecord;
     }
 
     /**
@@ -50,14 +50,14 @@ public class DriverEvent {
      *
      * @return the driver record
      */
-    public DriverRecord getDriverRecord() {
-        return this.driverRecord;
+    public ChannelRecord getDriverRecord() {
+        return this.channelRecord;
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return "DriverEvent [driverRecord=" + this.driverRecord + "]";
+        return "DriverEvent [driverRecord=" + this.channelRecord + "]";
     }
 
 }

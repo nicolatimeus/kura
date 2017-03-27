@@ -7,9 +7,9 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  *******************************************************************************/
-package org.eclipse.kura.driver.listener;
+package org.eclipse.kura.channel.listener;
 
-import org.eclipse.kura.driver.DriverEvent;
+import org.eclipse.kura.channel.ChannelEvent;
 
 /**
  * The listener interface DriverListener is mainly for receiving driver events.
@@ -19,10 +19,10 @@ import org.eclipse.kura.driver.DriverEvent;
  * {@code Driver#registerDriverListener(java.util.Map, DriverListener)} method.
  * When the driver event occurs, that object's appropriate method is invoked.
  *
- * @see DriverEvent
+ * @see ChannelEvent
  */
 @FunctionalInterface
-public interface DriverListener {
+public interface ChannelListener {
 
     /**
      * Triggers on driver event
@@ -32,6 +32,6 @@ public interface DriverListener {
      * @throws NullPointerException
      *             if event is null
      */
-    public void onDriverEvent(DriverEvent event);
+    public void onDriverEvent(ChannelEvent event);
 
 }

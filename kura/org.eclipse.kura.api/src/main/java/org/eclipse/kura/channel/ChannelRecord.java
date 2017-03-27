@@ -11,7 +11,7 @@
  *  Amit Kumar Mondal
  *
  *******************************************************************************/
-package org.eclipse.kura.driver;
+package org.eclipse.kura.channel;
 
 import static java.util.Objects.requireNonNull;
 
@@ -36,7 +36,7 @@ import org.eclipse.kura.type.TypedValue;
  * <br/>
  *
  * The channel ID must be set in the map as a key of :
- * {@link DriverConstants#CHANNEL_ID} or {@code channel.id}<br/>
+ * {@link ChannelConstants#CHANNEL_ID} or {@code channel.id}<br/>
  * <br/>
  *
  * In case you are using driver in isolation (i.e without using Assets), then
@@ -53,7 +53,7 @@ import org.eclipse.kura.type.TypedValue;
  * <br/>
  *
  * The value type must be set in the map as a key of :
- * {@link DriverConstants#CHANNEL_VALUE_TYPE} or {@code channel.value.type}<br/>
+ * {@link ChannelConstants#CHANNEL_VALUE_TYPE} or {@code channel.value.type}<br/>
  * <br/>
  *
  * The Driver Record also contain driver status of the operation on the provided
@@ -67,7 +67,7 @@ import org.eclipse.kura.type.TypedValue;
  * @noextend This class is not intended to be extended by clients.
  */
 @NotThreadSafe
-public class DriverRecord {
+public class ChannelRecord {
 
     /**
      * Provided channel configuration to perform read or write or monitor
@@ -79,7 +79,7 @@ public class DriverRecord {
      * Represents a driver specific status which signifies the status of the
      * read or write or monitor operation.
      */
-    private DriverStatus driverStatus;
+    private ChannelStatus driverStatus;
 
     /** Represents the timestamp of the operation performed. */
     private long timestamp;
@@ -90,6 +90,22 @@ public class DriverRecord {
      * the driver to the actual asset.
      */
     private TypedValue<?> value;
+
+    private String channelName;
+    private long channelId;
+
+    public ChannelRecord(String channelName, long channelId) {
+        this.channelName = channelName;
+        this.channelId = channelId;
+    }
+
+    public String getChannelName() {
+        return channelName;
+    }
+
+    public long getChannelId() {
+        return channelId;
+    }
 
     /** {@inheritDoc} */
     @Override
@@ -103,7 +119,7 @@ public class DriverRecord {
         if (this.getClass() != obj.getClass()) {
             return false;
         }
-        final DriverRecord other = (DriverRecord) obj;
+        final ChannelRecord other = (ChannelRecord) obj;
         if (this.channelConfiguration == null) {
             if (other.channelConfiguration != null) {
                 return false;
@@ -145,7 +161,7 @@ public class DriverRecord {
      *
      * @return the driver status
      */
-    public DriverStatus getDriverStatus() {
+    public ChannelStatus getChannelStatus() {
         return this.driverStatus;
     }
 
@@ -200,7 +216,7 @@ public class DriverRecord {
      * @throws NullPointerException
      *             if the argument is null
      */
-    public void setDriverStatus(final DriverStatus status) {
+    public void setChannelStatus(final ChannelStatus status) {
         requireNonNull(status, "Driver Status cannot be null");
         this.driverStatus = status;
     }

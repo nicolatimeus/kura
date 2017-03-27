@@ -7,13 +7,13 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  *******************************************************************************/
-package org.eclipse.kura.driver;
+package org.eclipse.kura.channel;
 
 /**
  * The Enum DriverConstants contains all the necessary constants required for
  * Drivers of Kura Asset Model
  */
-public enum DriverConstants {
+public enum ChannelConstants {
 
     /** Channel Name Property to be used in the configuration. */
     CHANNEL_ID("channel.id"),
@@ -30,7 +30,7 @@ public enum DriverConstants {
      * @param value
      *            the value
      */
-    private DriverConstants(final String value) {
+    private ChannelConstants(final String value) {
         this.value = value;
     }
 
