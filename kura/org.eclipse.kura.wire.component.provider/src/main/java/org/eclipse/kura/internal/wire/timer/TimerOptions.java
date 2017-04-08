@@ -30,6 +30,9 @@ final class TimerOptions {
 
     private static final WireMessages message = LocalizationAdapter.adapt(WireMessages.class);
 
+    private static final String SCHEDULING_MODE_FIXED_RATE = "FIXED RATE";
+    private static final String SCHEDULING_MODE_FIXED_DELAY = "FIXED DELAY";
+
     /** The Constant denoting the interval property for the CRON expression */
     private static final String PROP_CRON_INTERVAL = "cron.interval";
 
@@ -37,6 +40,8 @@ final class TimerOptions {
     private static final String PROP_SIMPLE_INTERVAL = "simple.interval";
 
     private static final String PROP_SIMPLE_TIME_UNIT = "simple.time.unit";
+
+    private static final String PROP_SIMPLE_MODE = "simple.scheduling.mode";
 
     private static final String PROP_INTERVAL_TYPE = "type";
 
@@ -79,6 +84,16 @@ final class TimerOptions {
             interval = (Integer) simpleInterval;
         }
         return interval;
+    }
+
+    /**
+     * Returns the scheduling mode for simple timers.
+     *
+     * @return the scheduling mode
+     */
+    SimpleSchedulingMode getSimpleSchedulingMode() {
+        return SCHEDULING_MODE_FIXED_RATE.equals(this.properties.get(PROP_SIMPLE_MODE))
+                ? SimpleSchedulingMode.FIXED_RATE : SimpleSchedulingMode.FIXED_DELAY;
     }
 
     /**

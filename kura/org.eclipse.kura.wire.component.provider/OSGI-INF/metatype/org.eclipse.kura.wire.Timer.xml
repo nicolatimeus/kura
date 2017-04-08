@@ -44,7 +44,18 @@
             <Option label="MINUTES" value="MINUTES" />
             <Option label="HOURS" value="HOURS" />
             <Option label="DAYS" value="DAYS" />
-        </AD>    
+        </AD>
+        
+        <AD id="simple.scheduling.mode"
+			name="simple.scheduling.mode"
+			type="String"
+			cardinality="0"
+			required="true"
+			default="FIXED DELAY"
+			description="The scheduling mode to be used for SIMPLE timers">
+			<Option label="FIXED RATE" value="FIXED RATE" />
+			<Option label="FIXED DELAY" value="FIXED DELAY" />
+        </AD>
         
         <AD id="cron.interval"
             name="cron.interval"
