@@ -32,9 +32,9 @@
       <choice
           value="developer"
           label="Developer"/>
-      <choice
+      <!--<choice
           value="user"
-          label="User"/>
+          label="User"/>-->
       <description>Select which type of developer for Kura you are</description>
     </setupTask>
     <setupTask
@@ -99,7 +99,8 @@
   <setupTask
       xsi:type="git:GitCloneTask"
       id="git.clone"
-      remoteURI="eclipse/kura">
+      remoteURI="eclipse/kura"
+      checkoutBranch="release-3.0.0">
     <annotation
         source="http://www.eclipse.org/oomph/setup/InducedChoices">
       <detail
