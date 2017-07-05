@@ -42,6 +42,7 @@ public class FifoTest {
     public void testMultiRetain() throws InterruptedException {
         CountDownLatch wiresLatch = new CountDownLatch(10);
 
+        assertTrue(false);
         Fifo fifo = new Fifo();
 
         WireHelperService wireHelperServiceMock = mock(WireHelperService.class);
