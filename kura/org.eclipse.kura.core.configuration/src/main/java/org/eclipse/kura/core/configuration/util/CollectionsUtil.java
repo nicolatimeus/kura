@@ -46,6 +46,8 @@ public class CollectionsUtil {
             if (ad != null && ad.getType() != null && Scalar.PASSWORD.equals(ad.getType())) {
                 if (value instanceof char[]) {
                     map.put(key, new Password((char[]) value));
+                } else if (value instanceof String[]) {
+                    map.put(key, stringsToPasswords((String[]) value));
                 } else {
                     map.put(key, new Password(value.toString()));
                 }
@@ -76,11 +78,29 @@ public class CollectionsUtil {
                 // more logic and consistent.
                 if (value instanceof Password) {
                     dictionary.put(key, value.toString());
+                } else if (value instanceof Password[]) {
+                    dictionary.put(key, passwordsToStrings((Password[]) value));
                 } else {
                     dictionary.put(key, value);
                 }
             }
         }
         return dictionary;
+    }
+
+    private static String[] passwordsToStrings(Password[] passwords) {
+        final String[] passwordStrings = new String[passwords.length];
+        for (int i = 0; i < passwordStrings.length; i++) {
+            passwordStrings[i] = passwords[i].toString();
+        }
+        return passwordStrings;
+    }
+
+    private static Password[] stringsToPasswords(String[] strings) {
+        final Password[] passwords = new Password[strings.length];
+        for (int i = 0; i < strings.length; i++) {
+            passwords[i] = new Password(strings[i]);
+        }
+        return passwords;
     }
 }

@@ -858,22 +858,36 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private void encryptPasswords(Map<String, Object> propertiesToUpdate) {
         for (Entry<String, Object> property : propertiesToUpdate.entrySet()) {
-            if (property.getValue() != null && property.getValue() instanceof Password) {
-                encryptPassword(propertiesToUpdate, property.getKey(), (Password) property.getValue());
+            if (property.getValue() != null) {
+                final String key = property.getKey();
+                final Object value = property.getValue();
+                try {
+                    if (value instanceof Password) {
+                        propertiesToUpdate.put(key, encryptPassword((Password) value));
+                    } else if (value instanceof Password[]) {
+                        propertiesToUpdate.put(key, encryptPasswords((Password[]) value));
+                    }
+                } catch (Exception e) {
+                    logger.warn("Failed to encrypt Password property: {}", key);
+                    propertiesToUpdate.remove(key);
+                }
             }
         }
     }
 
-    private void encryptPassword(Map<String, Object> propertiesToUpdate, String key, Password password) {
+    private Password[] encryptPasswords(Password[] passwords) throws KuraException {
+        for (int i = 0; i < passwords.length; i++) {
+            passwords[i] = encryptPassword(passwords[i]);
+        }
+        return passwords;
+    }
+
+    private Password encryptPassword(Password password) throws KuraException {
         try {
             this.cryptoService.decryptAes(password.getPassword());
-        } catch (Exception e1) {
-            try {
-                propertiesToUpdate.put(key, new Password(this.cryptoService.encryptAes(password.getPassword())));
-            } catch (Exception e) {
-                logger.warn("Failed to encrypt Password property: {}", key);
-                propertiesToUpdate.remove(key);
-            }
+            return password;
+        } catch (Exception e) {
+            return new Password(this.cryptoService.encryptAes(password.getPassword()));
         }
     }
 
