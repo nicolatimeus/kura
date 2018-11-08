@@ -467,6 +467,26 @@
                                     <artifactId>org.eclipse.kura.jetty.customizer</artifactId>
                                     <version>${org.eclipse.kura.jetty.customizer.version}</version>
                                 </artifactItem>
+                                <artifactItem>
+                                  <groupId>org.apache.servicemix.specs</groupId>
+                                  <artifactId>org.apache.servicemix.specs.activation-api-1.1</artifactId>
+                                  <version>${org.apache.servicemix.specs.activation-api-1.1.version}</version>
+                                </artifactItem>
+                                <artifactItem>
+                                  <groupId>org.apache.servicemix.specs</groupId>
+                                  <artifactId>org.apache.servicemix.specs.stax-api-1.2</artifactId>
+                                  <version>${org.apache.servicemix.specs.stax-api-1.2.version}</version>
+                                </artifactItem>
+                                <artifactItem>
+                                  <groupId>org.apache.servicemix.specs</groupId>
+                                  <artifactId>org.apache.servicemix.specs.jaxp-api-1.4</artifactId>
+                                  <version>${org.apache.servicemix.specs.jaxp-api-1.4.version}</version>
+                                </artifactItem>
+                                <artifactItem>
+                                  <groupId>org.apache.servicemix.specs</groupId>
+                                  <artifactId>org.apache.servicemix.specs.jaxb-api-2.1</artifactId>
+                                  <version>${org.apache.servicemix.specs.jaxb-api-2.1.version}</version>
+                                </artifactItem>
                             </artifactItems>
                             <stripVersion>true</stripVersion>
                             <outputDirectory>${project.basedir}/target/source/plugins</outputDirectory>
@@ -565,6 +585,10 @@
                                 <move file="target/source/plugins/geronimo-jms_2.0_spec.jar" tofile="target/source/plugins/geronimo-jms_2.0_spec_${org.apache.geronimo.specs.jms.version}.jar"/>
                                 <move file="target/source/plugins/geronimo-jta_1.1_spec.jar" tofile="target/source/plugins/geronimo-jta_1.1_spec_${org.apache.geronimo.specs.jta.version}.jar"/>
                                 <move file="target/source/plugins/org.apache.activemq.artemis.jar" tofile="target/source/plugins/org.apache.activemq.artemis_${org.apache.activemq.artemis.version}.jar"/>
+                                <move file="target/source/plugins/org.apache.servicemix.specs.activation-api-1.1.jar" tofile="target/source/plugins/org.apache.servicemix.specs.activation-api-1.1_${org.apache.servicemix.specs.activation-api-1.1.version}.jar"/>
+                                <move file="target/source/plugins/org.apache.servicemix.specs.stax-api-1.2.jar" tofile="target/source/plugins/org.apache.servicemix.specs.stax-api-1.2_${org.apache.servicemix.specs.stax-api-1.2.version}.jar"/>
+                                <move file="target/source/plugins/org.apache.servicemix.specs.jaxp-api-1.4.jar" tofile="target/source/plugins/org.apache.servicemix.specs.jaxp-api-1.4_${org.apache.servicemix.specs.jaxp-api-1.4.version}.jar"/>
+                                <move file="target/source/plugins/org.apache.servicemix.specs.jaxb-api-2.1.jar" tofile="target/source/plugins/org.apache.servicemix.specs.jaxb-api-2.1_${org.apache.servicemix.specs.jaxb-api-2.1.version}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>
