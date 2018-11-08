@@ -25,7 +25,7 @@
         <module>org.apache.log4j2-api-config</module>
         <module>org.eclipse.kura.jetty.customizer</module>
 		<module>p2-repo-common</module>
-        <module>p2-repo-equinox_3.12.50</module>
+        <module>p2-repo-equinox_3.13.100</module>
         <module>p2-repo-test-deps</module>
     </modules>
 
@@ -72,7 +72,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <check.plugins.exist.remote>false</check.plugins.exist.remote>
     </properties>
-    
+
     <profiles>
         <profile>
             <id>check-exists-plugin</id>
@@ -81,7 +81,7 @@
             </properties>
         </profile>
     </profiles>
-    
+
     <build>
         <plugins>
             <plugin>
