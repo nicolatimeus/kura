@@ -994,13 +994,11 @@ fi]]>
 	<target name="jee-config">
 		<propertyfile file="${project.build.directory}/${build.output.name}/config.ini">
 			<entry key="osgi.bundles" operation="+"
-				value=", reference:file:${kura.install.dir}/${kura.symlink}/${plugins.folder}/org.apache.servicemix.specs.activation-api-1.1_${org.apache.servicemix.specs.activation-api-1.1.version}.jar@3" />
+				value=", reference:file:${kura.install.dir}/${kura.symlink}/${plugins.folder}/org.apache.servicemix.specs.activation-api-1.1_${org.apache.servicemix.specs.activation-api-1.1.version}.jar@2:start" />
 			<entry key="osgi.bundles" operation="+"
-				value=", reference:file:${kura.install.dir}/${kura.symlink}/${plugins.folder}/org.apache.servicemix.specs.stax-api-1.2_${org.apache.servicemix.specs.stax-api-1.2.version}.jar@3" />
+				value=", reference:file:${kura.install.dir}/${kura.symlink}/${plugins.folder}/org.apache.servicemix.specs.jaxb-api-2.2_${org.apache.servicemix.specs.jaxb-api-2.2.version}.jar@2:start" />
 			<entry key="osgi.bundles" operation="+"
-				value=", reference:file:${kura.install.dir}/${kura.symlink}/${plugins.folder}/org.apache.servicemix.specs.jaxp-api-1.4_${org.apache.servicemix.specs.jaxp-api-1.4.version}.jar@3" />
-			<entry key="osgi.bundles" operation="+"
-				value=", reference:file:${kura.install.dir}/${kura.symlink}/${plugins.folder}/org.apache.servicemix.specs.jaxb-api-2.1_${org.apache.servicemix.specs.jaxb-api-2.1.version}.jar@3" />
+				value=", reference:file:${kura.install.dir}/${kura.symlink}/${plugins.folder}/org.apache.servicemix.bundles.jaxb-impl_2.2.11.1.jar@2:start" />
 		</propertyfile>
 	</target>
 
