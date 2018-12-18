@@ -25,6 +25,10 @@ public class ReadParams {
 
     private final ReadValueId readValueId;
 
+    public ReadParams(final ReadValueId readValueId) {
+        this.readValueId = readValueId;
+    }
+
     public ReadParams(final Map<String, Object> channelConfig) {
         final int nodeNamespaceIndex = Utils.tryExtract(channelConfig, OpcUaChannelDescriptor::getNodeNamespaceIndex,
                 "Error while retrieving Node Namespace index");

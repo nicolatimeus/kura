@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.eclipse.kura.channel.ChannelRecord;
 import org.eclipse.kura.channel.listener.ChannelListener;
+import org.eclipse.kura.internal.driver.opcua.OpcUaChannelDescriptor;
 import org.eclipse.kura.internal.driver.opcua.Utils;
 import org.eclipse.kura.type.DataType;
 
@@ -21,7 +22,7 @@ public class ListenRequest extends Request<ListenParams> {
 
     private final ChannelListener listener;
 
-    protected ListenRequest(final ListenParams params, final ChannelRecord record, final ChannelListener listener) {
+    public ListenRequest(final ListenParams params, final ChannelRecord record, final ChannelListener listener) {
         super(params, record);
         this.listener = listener;
     }
@@ -33,7 +34,18 @@ public class ListenRequest extends Request<ListenParams> {
         final DataType valueType = Utils.tryExtract(channelConfig,
                 config -> DataType.valueOf((String) config.get("+value.type")), "Error while retrieving value type");
 
-        final ListenParams params = new ListenParams(channelConfig);
+        final boolean subscribeToChildren = Utils.tryExtract(channelConfig,
+                OpcUaChannelDescriptor::getSubscribeToChildren,
+                "Error while retrieving Subscribe to Children property");
+
+        final SingleNodeListenParams params;
+
+        if (subscribeToChildren) {
+            params = new TreeListenParams(channelConfig);
+        } else {
+            params = new SingleNodeListenParams(channelConfig);
+        }
+
         return new ListenRequest(params, ChannelRecord.createReadRecord(channelName, valueType), listener);
     }
 

@@ -11,13 +11,7 @@
       Eurotech
       Amit Kumar Mondal
 -->
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" 
-               name="org.eclipse.kura.driver.opcua"
-               activate="activate" 
-               deactivate="deactivate" 
-               modified="updated"
-               enabled="true" 
-               configuration-policy="require"> 
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" activate="activate" configuration-policy="require" deactivate="deactivate" enabled="true" immediate="true" modified="updated" name="org.eclipse.kura.driver.opcua"> 
    <implementation class="org.eclipse.kura.internal.driver.opcua.OpcUaDriver"/>
    <property name="service.pid" value="org.eclipse.kura.driver.opcua"/>
    <service>

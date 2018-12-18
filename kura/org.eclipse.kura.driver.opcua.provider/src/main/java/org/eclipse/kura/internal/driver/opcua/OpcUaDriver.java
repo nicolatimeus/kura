@@ -32,6 +32,7 @@ import org.eclipse.kura.driver.PreparedRead;
 import org.eclipse.kura.internal.driver.opcua.request.ListenRequest;
 import org.eclipse.kura.internal.driver.opcua.request.ReadParams;
 import org.eclipse.kura.internal.driver.opcua.request.Request;
+import org.eclipse.kura.internal.driver.opcua.request.TreeListenParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +62,9 @@ public final class OpcUaDriver implements Driver, ConfigurableComponent {
 
     private Optional<ConnectionManager> connectionManager = Optional.empty();
     private Optional<CompletableFuture<ConnectionManager>> connectTask = Optional.empty();
-    private ListenerRegistrations registrations = new ListenerRegistrations();
+
+    private final ListenerRegistrationRegistry nodeListeneresRegistrations = new ListenerRegistrationRegistry();
+    private final ListenerRegistrationRegistry subtreeListenerRegistrations = new ListenerRegistrationRegistry();
 
     private volatile CryptoService cryptoService;
     private OpcUaOptions options;
@@ -95,7 +98,8 @@ public final class OpcUaDriver implements Driver, ConfigurableComponent {
         this.connectAttempt++;
         final long currentConnectAttempt = this.connectAttempt;
         final CompletableFuture<ConnectionManager> currentConnectTask = ConnectionManager
-                .connect(options, this::onFailure, registrations).thenApply(manager -> {
+                .connect(options, this::onFailure, nodeListeneresRegistrations, subtreeListenerRegistrations)
+                .thenApply(manager -> {
                     synchronized (this) {
                         if (this.connectAttempt != currentConnectAttempt) {
                             manager.close();
@@ -189,14 +193,22 @@ public final class OpcUaDriver implements Driver, ConfigurableComponent {
     @Override
     public void registerChannelListener(final Map<String, Object> channelConfig, final ChannelListener listener)
             throws ConnectionException {
-        this.registrations.registerListener(ListenRequest.extractListenRequest(channelConfig, listener));
+        final ListenRequest listenRequest = ListenRequest.extractListenRequest(channelConfig, listener);
+
+        if (listenRequest.getParameters() instanceof TreeListenParams) {
+            this.subtreeListenerRegistrations.registerListener(listenRequest);
+        } else {
+            this.nodeListeneresRegistrations.registerListener(listenRequest);
+        }
+
         connectAsync();
     }
 
     /** {@inheritDoc} */
     @Override
     public void unregisterChannelListener(final ChannelListener listener) throws ConnectionException {
-        this.registrations.unregisterListener(listener);
+        this.nodeListeneresRegistrations.unregisterListener(listener);
+        this.subtreeListenerRegistrations.unregisterListener(listener);
     }
 
     /**
