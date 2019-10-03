@@ -11,18 +11,16 @@ package org.eclipse.kura.web.shared.model;
 
 import java.io.Serializable;
 
-public class GwtConsoleUserOptions extends GwtBaseModel implements Serializable {
+public class GwtUserInfo extends GwtBaseModel implements Serializable {
+
+    private GwtUserData unused;
 
     private static final long serialVersionUID = 8697261888960678066L;
 
-    // Needed to prevent serialization errors
-    @SuppressWarnings("unused")
-    private GwtBundleInfo unused;
-
-    public GwtConsoleUserOptions() {
+    public GwtUserInfo() {
     }
 
-    public GwtConsoleUserOptions(final GwtConsoleUserOptions other) {
+    public GwtUserInfo(final GwtUserInfo other) {
         setPasswordMinimumLength(other.getPasswordMinimumLength());
         setPasswordRequireDigits(other.getPasswordRequireDigits());
         setPasswordRequireSpecialChars(other.getPasswordRequireSpecialChars());
@@ -59,6 +57,14 @@ public class GwtConsoleUserOptions extends GwtBaseModel implements Serializable 
 
     public boolean getPasswordRequireBothCases() {
         return (Boolean) get("passwordRequireBothCases");
+    }
+
+    public void setUserData(final GwtUserData userData) {
+        set("userData", userData);
+    }
+
+    public GwtUserData getUserData() {
+        return get("userData");
     }
 
     public void allowAnyPassword() {

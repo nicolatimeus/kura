@@ -11,8 +11,6 @@ package org.eclipse.kura.web;
 
 import static org.eclipse.kura.web.session.SecurityHandler.chain;
 
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,6 +56,7 @@ import org.eclipse.kura.web.server.servlet.LogServlet;
 import org.eclipse.kura.web.server.servlet.RedirectServlet;
 import org.eclipse.kura.web.server.servlet.SendStatusServlet;
 import org.eclipse.kura.web.server.servlet.SkinServlet;
+import org.eclipse.kura.web.server.servlet.SslAuthenticationServlet;
 import org.eclipse.kura.web.server.servlet.WiresBlinkServlet;
 import org.eclipse.kura.web.server.servlet.WiresSnapshotServlet;
 import org.eclipse.kura.web.session.Attributes;
@@ -68,6 +67,7 @@ import org.eclipse.kura.web.session.RoutingSecurityHandler;
 import org.eclipse.kura.web.session.SecurityHandler;
 import org.eclipse.kura.web.session.SessionAutorizationSecurityHandler;
 import org.eclipse.kura.web.session.SessionExpirationSecurityHandler;
+import org.eclipse.kura.web.shared.model.GwtUserData;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
@@ -95,6 +95,7 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
     private static final String CONSOLE_PATH = ADMIN_ROOT + "/console";
 
     private static final String PASSWORD_AUTH_PATH = LOGIN_MODULE_PATH + "/password";
+    private static final String CERT_AUTH_PATH = LOGIN_MODULE_PATH + "/cert";
 
     private static final Logger logger = LoggerFactory.getLogger(Console.class);
 
@@ -191,16 +192,6 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
         this.eventAdmin.postEvent(new Event(KuraConfigReadyEvent.KURA_CONFIG_EVENT_READY_TOPIC, eventProps));
     }
 
-    private void updateAuthenticationManager(String username, String password)
-            throws KuraException, NoSuchAlgorithmException, UnsupportedEncodingException {
-
-        char[] decryptedPassword = this.cryptoService.decryptAes(password.toCharArray());
-        char[] propertyPassword = this.cryptoService.sha1Hash(new String(decryptedPassword)).toCharArray();
-
-        this.authMgr.setUsername(username);
-        this.authMgr.setPassword(propertyPassword);
-    }
-
     private void setAppRoot(String propertiesAppRoot) {
         this.appRoot = propertiesAppRoot;
     }
@@ -224,18 +215,15 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
     }
 
     private void doUpdate(Map<String, Object> properties) {
-        ConsoleOptions options = new ConsoleOptions(properties);
-
-        Console.setConsoleOptions(options);
-
         try {
-            updateAuthenticationManager(options.getUsername(), options.getUserPassword());
-        } catch (Exception e) {
-            logger.warn("Error Updating Web properties", e);
-        }
+            ConsoleOptions options = new ConsoleOptions(properties, this.cryptoService);
+            Console.setConsoleOptions(options);
 
-        setAppRoot(options.getAppRoot());
-        setSessionMaxInactiveInterval(options.getSessionMaxInactivityInterval());
+            setAppRoot(options.getAppRoot());
+            setSessionMaxInactiveInterval(options.getSessionMaxInactivityInterval());
+        } catch (final Exception e) {
+            logger.warn("failed to load console options", e);
+        }
 
         try {
             initHTTPService();
@@ -265,6 +253,7 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
         this.httpService.unregister(AUTH_RESOURCE_PATH);
         this.httpService.unregister(CONSOLE_RESOURCE_PATH);
         this.httpService.unregister(PASSWORD_AUTH_PATH);
+        this.httpService.unregister(CERT_AUTH_PATH);
         this.httpService.unregister(LOGIN_MODULE_PATH + "/banner");
         this.httpService.unregister(DENALI_MODULE_PATH + "/session");
         this.httpService.unregister(DENALI_MODULE_PATH + "/xsrf");
@@ -333,7 +322,7 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
         return session;
     }
 
-    final Set<String> authenticationPaths = new HashSet<>(Arrays.asList(AUTH_PATH, PASSWORD_AUTH_PATH));
+    final Set<String> authenticationPaths = new HashSet<>(Arrays.asList(AUTH_PATH, PASSWORD_AUTH_PATH, CERT_AUTH_PATH));
 
     private HttpContext initSessionContext(final HttpContext defaultContext) {
 
@@ -387,6 +376,8 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
 
         this.httpService.registerServlet(PASSWORD_AUTH_PATH,
                 new GwtPasswordAuthenticationServiceImpl(this.authMgr, CONSOLE_PATH), null, sessionContext);
+        this.httpService.registerServlet(CERT_AUTH_PATH, new SslAuthenticationServlet(CONSOLE_PATH), null,
+                sessionContext);
         this.httpService.registerServlet(DENALI_MODULE_PATH + "/extension", new GwtExtensionServiceImpl(), null,
                 resourceContext);
         this.httpService.registerServlet(LOGIN_MODULE_PATH + "/extension", new GwtExtensionServiceImpl(), null,
@@ -533,6 +524,11 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
     public String setAuthenticated(final HttpSession session, final String user) {
 
         session.setAttribute(Attributes.AUTORIZED_USER.getValue(), user);
+
+        final GwtUserData userData = consoleOptions.getUserDataOrDefault(user);
+
+        session.setAttribute(Attributes.PERMISSIONS.getValue(), userData.getPermissions());
+        session.setAttribute(Attributes.IS_ADMIN.getValue(), userData.isAdmin());
 
         return CONSOLE_PATH;
     }

@@ -13,7 +13,9 @@ package org.eclipse.kura.web.shared.service;
 
 import java.util.ArrayList;
 
+import org.eclipse.kura.web.server.RequiredPermissions;
 import org.eclipse.kura.web.shared.GwtKuraException;
+import org.eclipse.kura.web.shared.KuraPermission;
 import org.eclipse.kura.web.shared.model.GwtSnapshot;
 import org.eclipse.kura.web.shared.model.GwtXSRFToken;
 
@@ -21,6 +23,7 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 @RemoteServiceRelativePath("snapshot")
+@RequiredPermissions(KuraPermission.SETTINGS_ADMIN)
 public interface GwtSnapshotService extends RemoteService {
 
     public ArrayList<GwtSnapshot> findDeviceSnapshots(GwtXSRFToken xsrfToken) throws GwtKuraException;

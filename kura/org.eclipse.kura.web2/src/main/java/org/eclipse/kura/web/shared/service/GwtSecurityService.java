@@ -11,17 +11,22 @@
  *******************************************************************************/
 package org.eclipse.kura.web.shared.service;
 
+import org.eclipse.kura.web.server.RequiredPermissions;
 import org.eclipse.kura.web.shared.GwtKuraException;
+import org.eclipse.kura.web.shared.KuraPermission;
 import org.eclipse.kura.web.shared.model.GwtXSRFToken;
 
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 @RemoteServiceRelativePath("security")
+@RequiredPermissions(KuraPermission.SETTINGS_ADMIN)
 public interface GwtSecurityService extends RemoteService {
 
+    @RequiredPermissions({})
     public Boolean isSecurityServiceAvailable();
 
+    @RequiredPermissions({})
     public Boolean isDebugMode();
 
     public void reloadSecurityPolicyFingerprint(GwtXSRFToken xsrfToken) throws GwtKuraException;

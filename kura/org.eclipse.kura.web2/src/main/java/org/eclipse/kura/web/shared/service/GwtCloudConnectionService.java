@@ -16,7 +16,9 @@ import java.util.List;
 
 import org.eclipse.kura.cloud.CloudService;
 import org.eclipse.kura.cloud.factory.CloudServiceFactory;
+import org.eclipse.kura.web.server.RequiredPermissions;
 import org.eclipse.kura.web.shared.GwtKuraException;
+import org.eclipse.kura.web.shared.KuraPermission;
 import org.eclipse.kura.web.shared.model.GwtCloudComponentFactories;
 import org.eclipse.kura.web.shared.model.GwtCloudConnectionEntry;
 import org.eclipse.kura.web.shared.model.GwtCloudEntry;
@@ -42,6 +44,7 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
  *
  */
 @RemoteServiceRelativePath("cloudservices")
+@RequiredPermissions(KuraPermission.SERVICES_ADMIN)
 public interface GwtCloudConnectionService extends RemoteService {
 
     /**

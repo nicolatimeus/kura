@@ -24,12 +24,11 @@ import org.eclipse.kura.web.client.util.FailureHandler;
 import org.eclipse.kura.web.client.util.HelpButton;
 import org.eclipse.kura.web.client.util.HelpButton.HelpTextProvider;
 import org.eclipse.kura.web.client.util.MessageUtils;
-import org.eclipse.kura.web.shared.model.GwtConsoleUserOptions;
 import org.eclipse.kura.web.shared.GwtSafeHtmlUtils;
-import org.eclipse.kura.web.shared.model.GwtGroupedNVPair;
 import org.eclipse.kura.web.shared.model.GwtNetIfStatus;
 import org.eclipse.kura.web.shared.model.GwtNetInterfaceConfig;
 import org.eclipse.kura.web.shared.model.GwtSession;
+import org.eclipse.kura.web.shared.model.GwtUserInfo;
 import org.eclipse.kura.web.shared.model.GwtWifiBgscanModule;
 import org.eclipse.kura.web.shared.model.GwtWifiChannelModel;
 import org.eclipse.kura.web.shared.model.GwtWifiCiphers;
@@ -40,8 +39,6 @@ import org.eclipse.kura.web.shared.model.GwtWifiRadioMode;
 import org.eclipse.kura.web.shared.model.GwtWifiSecurity;
 import org.eclipse.kura.web.shared.model.GwtWifiWirelessMode;
 import org.eclipse.kura.web.shared.model.GwtXSRFToken;
-import org.eclipse.kura.web.shared.service.GwtDeviceService;
-import org.eclipse.kura.web.shared.service.GwtDeviceServiceAsync;
 import org.eclipse.kura.web.shared.service.GwtNetworkService;
 import org.eclipse.kura.web.shared.service.GwtNetworkServiceAsync;
 import org.eclipse.kura.web.shared.service.GwtSecurityTokenService;
@@ -126,7 +123,6 @@ public class TabWirelessUi extends Composite implements NetworkTab {
 
     private final GwtSecurityTokenServiceAsync gwtXSRFService = GWT.create(GwtSecurityTokenService.class);
     private final GwtNetworkServiceAsync gwtNetworkService = GWT.create(GwtNetworkService.class);
-    private final GwtDeviceServiceAsync gwtDeviceService = GWT.create(GwtDeviceService.class);
 
     private static final String REGEX_PASSWORD_WPA = "^[ -~]{8,63}$";
     private static final String REGEX_PASSWORD_WEP = "^(?:[\\x00-\\x7F]{5}|[\\x00-\\x7F]{13}|[a-fA-F0-9]{10}|[a-fA-F0-9]{26})$";
@@ -1311,41 +1307,32 @@ public class TabWirelessUi extends Composite implements NetworkTab {
 
             @Override
             public void onSuccess(GwtXSRFToken token) {
-                TabWirelessUi.this.gwtDeviceService.findDeviceConfiguration(token,
-                        new AsyncCallback<ArrayList<GwtGroupedNVPair>>() {
 
-                            @Override
-                            public void onFailure(Throwable caught) {
-                                TabWirelessUi.this.channelGrid.setVisible(false);
-                                FailureHandler.handle(caught);
+                gwtNetworkService.getKuraWifiTopChannel(token, new AsyncCallback<Integer>() {
+
+                    @Override
+                    public void onFailure(Throwable caught) {
+                        TabWirelessUi.this.channelGrid.setVisible(false);
+                        FailureHandler.handle(caught);
+                    }
+
+                    @Override
+                    public void onSuccess(Integer topChannel) {
+                        TabWirelessUi.this.channelGrid.setVisible(true);
+
+                        // Remove channels 12 and 13
+                        if (topChannel < MAX_WIFI_CHANNEL) {
+                            try {
+                                TabWirelessUi.this.channelDataProvider.getList().remove(MAX_WIFI_CHANNEL - 1);
+                                TabWirelessUi.this.channelDataProvider.getList().remove(MAX_WIFI_CHANNEL - 2);
+                            } catch (UnsupportedOperationException | IndexOutOfBoundsException e) {
+                                logger.info(e.getLocalizedMessage());
                             }
+                        }
 
-                            @Override
-                            public void onSuccess(ArrayList<GwtGroupedNVPair> result) {
-                                if (result != null) {
-                                    TabWirelessUi.this.channelGrid.setVisible(true);
-                                    for (GwtGroupedNVPair pair : result) {
-                                        String name = pair.getName();
-                                        if (name != null && name.equals("devLastWifiChannel")) {
-                                            int topChannel = Integer.parseInt(pair.getValue());
-                                            // Remove channels 12 and 13
-                                            if (topChannel < MAX_WIFI_CHANNEL) {
-                                                try {
-                                                    TabWirelessUi.this.channelDataProvider.getList()
-                                                            .remove(MAX_WIFI_CHANNEL - 1);
-                                                    TabWirelessUi.this.channelDataProvider.getList()
-                                                            .remove(MAX_WIFI_CHANNEL - 2);
-                                                } catch (UnsupportedOperationException | IndexOutOfBoundsException e) {
-                                                    logger.info(e.getLocalizedMessage());
-                                                }
-                                            }
-                                        }
-                                    }
-                                    TabWirelessUi.this.channelDataProvider.flush();
-                                }
-                            }
-
-                        });
+                        TabWirelessUi.this.channelDataProvider.flush();
+                    }
+                });
             }
 
         });
@@ -1363,7 +1350,7 @@ public class TabWirelessUi extends Composite implements NetworkTab {
 
     private void setPasswordValidation() {
 
-        final GwtConsoleUserOptions configUserOptions = EntryClassUi.getUserOptions();
+        final GwtUserInfo configUserOptions = EntryClassUi.getUserOptions();
 
         if (this.getWirelessMode() != GwtWifiWirelessMode.netWifiWirelessModeAccessPoint) {
             configUserOptions.allowAnyPassword();

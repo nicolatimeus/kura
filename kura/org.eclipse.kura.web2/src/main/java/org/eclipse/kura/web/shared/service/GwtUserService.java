@@ -11,30 +11,32 @@
  *******************************************************************************/
 package org.eclipse.kura.web.shared.service;
 
-import java.util.List;
+import java.util.Set;
 
 import org.eclipse.kura.web.server.RequiredPermissions;
 import org.eclipse.kura.web.shared.GwtKuraException;
 import org.eclipse.kura.web.shared.KuraPermission;
-import org.eclipse.kura.web.shared.model.GwtChannelOperationResult;
-import org.eclipse.kura.web.shared.model.GwtChannelRecord;
+import org.eclipse.kura.web.shared.model.GwtUserData;
 import org.eclipse.kura.web.shared.model.GwtXSRFToken;
 
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
-/**
- * This interface provide a set of methods to manage assets from the web UI.
- * In particular, it provides a way to read, write and list asset instances.
- *
- */
 @RemoteServiceRelativePath("assetservices")
-@RequiredPermissions(KuraPermission.SERVICES_ADMIN)
-public interface GwtAssetService extends RemoteService {
+@RequiredPermissions(KuraPermission.USER_ADMIN)
+public interface GwtUserService extends RemoteService {
 
-    public GwtChannelOperationResult readAllChannels(GwtXSRFToken xsrfToken, String assetPid) throws GwtKuraException;
+    public void createUser(final GwtXSRFToken token, final String userName, final String password)
+            throws GwtKuraException;
 
-    public GwtChannelOperationResult write(GwtXSRFToken xsrfToken, String assetPid,
-            List<GwtChannelRecord> channelRecords) throws GwtKuraException;
+    public void deleteUser(final GwtXSRFToken token, final String userName) throws GwtKuraException;
 
+    public void setPermissions(final GwtXSRFToken token, final String user, final Set<String> permissions)
+            throws GwtKuraException;
+
+    public Set<String> getExistingPermissions(final GwtXSRFToken token) throws GwtKuraException;
+
+    public Set<GwtUserData> getUserData(final GwtXSRFToken token) throws GwtKuraException;
+
+    public void setUserData(final Set<GwtUserData> userData) throws GwtKuraException;
 }

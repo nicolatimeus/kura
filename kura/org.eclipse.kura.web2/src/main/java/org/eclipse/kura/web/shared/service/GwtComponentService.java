@@ -16,7 +16,9 @@ package org.eclipse.kura.web.shared.service;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.kura.web.server.RequiredPermissions;
 import org.eclipse.kura.web.shared.GwtKuraException;
+import org.eclipse.kura.web.shared.KuraPermission;
 import org.eclipse.kura.web.shared.model.GwtConfigComponent;
 import org.eclipse.kura.web.shared.model.GwtXSRFToken;
 
@@ -29,6 +31,7 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
  *
  */
 @RemoteServiceRelativePath("component")
+@RequiredPermissions(KuraPermission.SERVICES_ADMIN)
 public interface GwtComponentService extends RemoteService {
 
     /**
@@ -143,8 +146,9 @@ public interface GwtComponentService extends RemoteService {
             throws GwtKuraException;
 
     public void createFactoryComponent(GwtXSRFToken xsrfToken, String factoryPid, String pid) throws GwtKuraException;
-    
-    public void createFactoryComponent(GwtXSRFToken xsrfToken, String factoryPid, String pid, GwtConfigComponent properties) throws GwtKuraException;
+
+    public void createFactoryComponent(GwtXSRFToken xsrfToken, String factoryPid, String pid,
+            GwtConfigComponent properties) throws GwtKuraException;
 
     public void deleteFactoryConfiguration(GwtXSRFToken xsrfToken, String pid, boolean takeSnapshot)
             throws GwtKuraException;

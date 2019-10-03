@@ -1629,4 +1629,10 @@ public class GwtNetworkServiceImpl extends OsgiRemoteServiceServlet implements G
         }
         return cellularModem;
     }
+
+    @Override
+    public int getKuraWifiTopChannel(GwtXSRFToken xsrfToken) throws GwtKuraException {
+
+        return ServiceLocator.applyToServiceOptionally(SystemService.class, SystemService::getKuraWifiTopChannel);
+    }
 }

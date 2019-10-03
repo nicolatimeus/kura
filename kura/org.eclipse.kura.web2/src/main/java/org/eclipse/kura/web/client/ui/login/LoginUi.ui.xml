@@ -19,6 +19,12 @@
 			fade="false" dataBackdrop="FALSE" addStyleNames="login-form">
 			
 			<b:ModalBody ui:field="loginModalBody">
+						<b:InputGroup addStyleNames="login-input">
+							<b:InputGroupAddon icon="USER" iconSize="LARGE"
+								addStyleNames="login-icon" />
+							<b:Input placeholder="Enter username" allowBlank="false" type="TEXT"
+								autoComplete="false" ui:field="usernameInput" b:id="login-user" />
+						</b:InputGroup>
 						<b:FormGroup ui:field="authenticationMethodGroup">
                             <b:FormLabel for="authenticationMethod" text="Authentication Method"/>
                             <g:FlowPanel>
@@ -26,12 +32,6 @@
                                 </b:ListBox>
                             </g:FlowPanel>
                         </b:FormGroup>
-						<b:InputGroup addStyleNames="login-input">
-							<b:InputGroupAddon icon="USER" iconSize="LARGE"
-								addStyleNames="login-icon" />
-							<b:Input placeholder="Enter username" allowBlank="false" type="TEXT"
-								autoComplete="false" ui:field="usernameInput" b:id="login-user" />
-						</b:InputGroup>
 			</b:ModalBody>
 			<b:ModalFooter>
 				<b:SubmitButton text="Login" b:id="login-button" />

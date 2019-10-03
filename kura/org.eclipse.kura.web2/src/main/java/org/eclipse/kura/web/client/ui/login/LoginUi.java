@@ -96,6 +96,7 @@ public class LoginUi extends Composite implements Context {
         initWidget(uiBinder.createAndBindUi(this));
 
         addAuthenticationHandler(new PasswordAuthenticationHandler());
+        addAuthenticationHandler(new CertificateAuthenticationHandler());
 
         authenticationMethod.setSelectedIndex(0);
         authenticationMethod.addChangeHandler(e -> setAuthenticationMethod(authenticationMethod.getSelectedItemText()));
@@ -149,8 +150,11 @@ public class LoginUi extends Composite implements Context {
             });
         });
 
-        this.loginDialog.show();
         initLoginBannerModal();
+    }
+
+    public void show() {
+        this.loginDialog.show();
     }
 
     private void setAuthenticationMethod(final String authenticationMethod) {
@@ -294,6 +298,25 @@ public class LoginUi extends Composite implements Context {
                 }
             });
 
+        }
+
+    }
+
+    private class CertificateAuthenticationHandler implements AuthenticationHandler {
+
+        @Override
+        public String getName() {
+            return "Certificate";
+        }
+
+        @Override
+        public WidgetFactory getLoginDialogElement() {
+            return null;
+        }
+
+        @Override
+        public void authenticate(String userName, Callback<String, String> callback) {
+            Window.Location.assign("https://" + Window.Location.getHostName() + ":4443/admin/login/cert");
         }
 
     }

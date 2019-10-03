@@ -11,9 +11,8 @@
  *******************************************************************************/
 package org.eclipse.kura.web;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
@@ -24,9 +23,6 @@ public class AuthenticationManager {
 
     private static AuthenticationManager instance;
 
-    private char[] password;
-    private String username;
-
     public static AuthenticationManager getInstance() {
         if (instance == null) {
             instance = new AuthenticationManager();
@@ -34,24 +30,19 @@ public class AuthenticationManager {
         return instance;
     }
 
-    protected void setUsername(String username) {
-        this.username = username;
-    }
-
-    protected void setPassword(char[] psw) {
-        this.password = psw;
-    }
-
     public boolean authenticate(String username, String password) throws KuraException {
-        requireNonNull(this.username);
-        requireNonNull(this.password);
-        
+
         try {
+            final Optional<String> registeredPassword = Console.getConsoleOptions().getUserPassword(username);
+
+            if (!registeredPassword.isPresent()) {
+                throw new IllegalArgumentException();
+            }
+
             CryptoService cryptoService = ServiceLocator.getInstance().getService(CryptoService.class);
             String sha1Password = cryptoService.sha1Hash(password);
-            boolean isUsernameMatching = username.equals(this.username);
-            boolean isPasswordMatching = Arrays.equals(sha1Password.toCharArray(), this.password);
-            return isUsernameMatching && isPasswordMatching;
+
+            return Arrays.equals(sha1Password.toCharArray(), registeredPassword.get().toCharArray());
         } catch (Exception e) {
             throw new KuraException(KuraErrorCode.SECURITY_EXCEPTION);
         }

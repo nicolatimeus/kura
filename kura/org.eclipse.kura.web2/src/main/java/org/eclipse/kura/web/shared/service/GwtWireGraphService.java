@@ -15,7 +15,9 @@ package org.eclipse.kura.web.shared.service;
 
 import java.util.List;
 
+import org.eclipse.kura.web.server.RequiredPermissions;
 import org.eclipse.kura.web.shared.GwtKuraException;
+import org.eclipse.kura.web.shared.KuraPermission;
 import org.eclipse.kura.web.shared.model.GwtConfigComponent;
 import org.eclipse.kura.web.shared.model.GwtWireComposerStaticInfo;
 import org.eclipse.kura.web.shared.model.GwtWireGraph;
@@ -30,6 +32,7 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
  * retrieving and managing the Wire Graphs.
  */
 @RemoteServiceRelativePath("wires")
+@RequiredPermissions(KuraPermission.SERVICES_ADMIN)
 public interface GwtWireGraphService extends RemoteService {
 
     /**

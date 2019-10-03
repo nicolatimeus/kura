@@ -18,7 +18,6 @@ import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.web.AuthenticationManager;
 import org.eclipse.kura.web.Console;
-import org.eclipse.kura.web.session.Attributes;
 import org.eclipse.kura.web.shared.GwtKuraException;
 import org.eclipse.kura.web.shared.service.GwtPasswordAuthenticationService;
 import org.slf4j.Logger;
@@ -28,7 +27,7 @@ public class GwtPasswordAuthenticationServiceImpl extends OsgiRemoteServiceServl
         implements GwtPasswordAuthenticationService {
 
     private static final String UI_LOGIN_FAILURE_MESSAGE = "UI Login - Failure - Login failed for user: {}, request IP: {}";
-    
+
     private static final Logger logger = LoggerFactory.getLogger(GwtPasswordAuthenticationServiceImpl.class);
     private static final Logger auditLogger = LoggerFactory.getLogger("AuditLogger");
 
@@ -62,7 +61,7 @@ public class GwtPasswordAuthenticationServiceImpl extends OsgiRemoteServiceServl
                 throw new KuraException(KuraErrorCode.SECURITY_EXCEPTION);
             }
 
-            session.setAttribute(Attributes.AUTORIZED_USER.getValue(), username);
+            Console.instance().setAuthenticated(session, username);
             logger.info("UI Login - Success - Login for user: {}, session id: {}, request IP: {}", username,
                     session.getId(), requestIp);
             auditLogger.info("UI Login - Success - Login for user: {}, session id: {}, request IP: {}", username,

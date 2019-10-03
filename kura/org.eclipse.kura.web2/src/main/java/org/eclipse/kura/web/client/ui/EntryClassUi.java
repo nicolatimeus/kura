@@ -19,6 +19,7 @@ import static org.eclipse.kura.web.client.util.FilterBuilder.or;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.eclipse.kura.web.client.messages.Messages;
@@ -37,9 +38,10 @@ import org.eclipse.kura.web.client.util.PidTextBox;
 import org.eclipse.kura.web.client.util.request.Request;
 import org.eclipse.kura.web.client.util.request.RequestContext;
 import org.eclipse.kura.web.client.util.request.RequestQueue;
+import org.eclipse.kura.web.shared.KuraPermission;
 import org.eclipse.kura.web.shared.model.GwtConfigComponent;
-import org.eclipse.kura.web.shared.model.GwtConsoleUserOptions;
 import org.eclipse.kura.web.shared.model.GwtSession;
+import org.eclipse.kura.web.shared.model.GwtUserInfo;
 import org.eclipse.kura.web.shared.model.GwtXSRFToken;
 import org.eclipse.kura.web.shared.service.GwtComponentService;
 import org.eclipse.kura.web.shared.service.GwtComponentServiceAsync;
@@ -183,6 +185,8 @@ public class EntryClassUi extends Composite implements Context {
     NavPills sidenavPills;
     @UiField
     AlertDialog alertDialog;
+    @UiField
+    Column servicesList;
 
     private static final Messages MSGS = GWT.create(Messages.class);
     private static final EntryClassUIUiBinder uiBinder = GWT.create(EntryClassUIUiBinder.class);
@@ -230,9 +234,10 @@ public class EntryClassUi extends Composite implements Context {
     private ServicesUi servicesUi;
     private AnchorListItem selectedAnchorListItem;
 
-    private static GwtConsoleUserOptions userOptions;
+    private static GwtUserInfo userInfo;
 
-    public EntryClassUi() {
+    public EntryClassUi(final GwtUserInfo userInfo) {
+        EntryClassUi.userInfo = userInfo;
         this.ui = this;
         initWidget(uiBinder.createAndBindUi(this));
         initWaitModal();
@@ -315,7 +320,8 @@ public class EntryClassUi extends Composite implements Context {
 
     public void initSystemPanel(GwtSession gwtSession) {
         final EntryClassUi instanceReference = this;
-        if (!gwtSession.isNetAdminAvailable()) {
+        if (!gwtSession.isNetAdminAvailable()
+                || !checkPermissions(Collections.singleton(KuraPermission.NETWORK_ADMIN))) {
             this.network.setVisible(false);
             this.firewall.setVisible(false);
         }
@@ -341,6 +347,11 @@ public class EntryClassUi extends Composite implements Context {
     }
 
     private void initDriversAndAssetsPanel() {
+        if (!checkPermission(KuraPermission.SERVICES_ADMIN)) {
+            this.driversAndAssetsServices.setVisible(false);
+            return;
+        }
+
         this.driversAndAssetsServices.addClickHandler(event -> {
             Button b = new Button(MSGS.yesButton(), event1 -> {
                 forceTabsCleaning();
@@ -360,6 +371,11 @@ public class EntryClassUi extends Composite implements Context {
     }
 
     private void initWiresPanel() {
+        if (!checkPermission(KuraPermission.SETTINGS_ADMIN)) {
+            this.wires.setVisible(false);
+            return;
+        }
+
         this.wires.addClickHandler(event -> {
             Button b = new Button(MSGS.yesButton(), event1 -> {
                 forceTabsCleaning();
@@ -378,6 +394,11 @@ public class EntryClassUi extends Composite implements Context {
     }
 
     private void initCloudServicesPanel() {
+        if (!checkPermission(KuraPermission.SERVICES_ADMIN)) {
+            this.cloudServices.setVisible(false);
+            return;
+        }
+
         this.cloudServices.addClickHandler(event -> {
             Button b = new Button(MSGS.yesButton(), event1 -> {
                 forceTabsCleaning();
@@ -397,6 +418,11 @@ public class EntryClassUi extends Composite implements Context {
     }
 
     private void initSettingsPanel() {
+        if (!checkPermission(KuraPermission.SETTINGS_ADMIN)) {
+            this.settings.setVisible(false);
+            return;
+        }
+
         this.settings.addClickHandler(event -> {
             Button b = new Button(MSGS.yesButton(), event1 -> {
                 forceTabsCleaning();
@@ -416,6 +442,11 @@ public class EntryClassUi extends Composite implements Context {
     }
 
     private void initPackagesPanel() {
+        if (!checkPermission(KuraPermission.PACKAGES_ADMIN)) {
+            this.packages.setVisible(false);
+            return;
+        }
+
         this.packages.addClickHandler(event -> {
             Button b = new Button(MSGS.yesButton(), event1 -> {
                 forceTabsCleaning();
@@ -477,6 +508,11 @@ public class EntryClassUi extends Composite implements Context {
     }
 
     private void initDevicePanel() {
+        if (!checkPermission(KuraPermission.DEVICE)) {
+            this.device.setVisible(false);
+            return;
+        }
+
         this.device.addClickHandler(event -> {
             Button b = new Button(MSGS.yesButton(), event1 -> {
                 forceTabsCleaning();
@@ -496,6 +532,11 @@ public class EntryClassUi extends Composite implements Context {
     }
 
     private void initStatusPanel(final EntryClassUi instanceReference) {
+        if (!checkPermission(KuraPermission.STATUS)) {
+            this.status.setVisible(false);
+            return;
+        }
+
         this.status.addClickHandler(event -> {
             Button b = new Button(MSGS.yesButton(), event1 -> {
                 forceTabsCleaning();
@@ -570,13 +611,15 @@ public class EntryClassUi extends Composite implements Context {
         });
     }
 
-    public void fetchUserOptions() {
-        RequestQueue.submit(c -> this.gwtXSRFService.generateSecurityToken(c.callback(token -> {
-            this.gwtSessionService.getUserOptions(token, c.callback(options -> userOptions = options));
-        })));
+    public void fetchUserInfo(final Runnable next) {
+        RequestQueue.submit(c -> this.gwtXSRFService.generateSecurityToken(
+                c.callback(token -> this.gwtSessionService.getUserInfo(token, c.callback(info -> {
+                    userInfo = info;
+                    next.run();
+                })))));
     }
 
-    public void fetchAvailableServices(final AsyncCallback<Void> callback) {
+    public void fetchAvailableServices() {
         // (Re)Fetch Available Services
         RequestQueue.submit(c -> this.gwtXSRFService.generateSecurityToken(
                 c.callback(token -> EntryClassUi.this.gwtComponentService.findComponentConfigurations(token,
@@ -585,9 +628,6 @@ public class EntryClassUi extends Composite implements Context {
                             @Override
                             public void onFailure(Throwable ex) {
                                 FailureHandler.handle(ex, EntryClassUi.class.getName());
-                                if (callback != null) {
-                                    callback.onFailure(ex);
-                                }
                             }
 
                             @Override
@@ -601,9 +641,6 @@ public class EntryClassUi extends Composite implements Context {
                                     }
                                 }
                                 filterAvailableServices(EntryClassUi.this.textSearch.getValue());
-                                if (callback != null) {
-                                    callback.onSuccess(null);
-                                }
                             }
                         })))));
 
@@ -640,6 +677,11 @@ public class EntryClassUi extends Composite implements Context {
     }
 
     private void initServicesTree() {
+        if (!checkPermission(KuraPermission.SERVICES_ADMIN)) {
+            servicesList.setVisible(false);
+            return;
+        }
+
         // Keypress handler
         this.textSearch.addKeyUpHandler(this.searchBoxChangeHandler);
 
@@ -716,7 +758,7 @@ public class EntryClassUi extends Composite implements Context {
 
                                     @Override
                                     public void onSuccess(Void result) {
-                                        context.defer(2000, () -> fetchAvailableServices(null));
+                                        context.defer(2000, () -> fetchAvailableServices());
                                     }
                                 }));
                     })));
@@ -877,8 +919,8 @@ public class EntryClassUi extends Composite implements Context {
         waitModal.hide();
     }
 
-    public static GwtConsoleUserOptions getUserOptions() {
-        return new GwtConsoleUserOptions(userOptions);
+    public static GwtUserInfo getUserOptions() {
+        return new GwtUserInfo(userInfo);
     }
 
     private void forceTabsCleaning() {
@@ -912,19 +954,12 @@ public class EntryClassUi extends Composite implements Context {
     }
 
     public void init() {
-        fetchAvailableServices(new AsyncCallback<Void>() {
-
-            @Override
-            public void onSuccess(Void result) {
-                EntryClassUi.this.showStatusPanel();
-            }
-
-            @Override
-            public void onFailure(Throwable caught) {
-                EntryClassUi.this.showStatusPanel();
-            }
-        });
-        fetchUserOptions();
+        if (checkPermission(KuraPermission.SERVICES_ADMIN)) {
+            fetchAvailableServices();
+        }
+        if (checkPermission(KuraPermission.DEVICE)) {
+            showStatusPanel();
+        }
     }
 
     private void showStatusPanel() {
@@ -1035,5 +1070,19 @@ public class EntryClassUi extends Composite implements Context {
         alertDialog.show(message,
                 severity == AlertSeverity.INFO ? AlertDialog.Severity.INFO : AlertDialog.Severity.ALERT,
                 callback::accept);
+    }
+
+    public boolean checkPermissions(final Set<String> permissions) {
+        if (userInfo.getUserData().isAdmin()) {
+            return true;
+        }
+        return userInfo.getUserData().getPermissions().containsAll(permissions);
+    }
+
+    public boolean checkPermission(String permission) {
+        if (userInfo.getUserData().isAdmin()) {
+            return true;
+        }
+        return userInfo.getUserData().getPermissions().contains(permission);
     }
 }

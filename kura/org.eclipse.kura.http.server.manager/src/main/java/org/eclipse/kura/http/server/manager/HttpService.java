@@ -17,7 +17,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
+import java.net.URL;
 import java.security.KeyStore;
 import java.security.KeyStore.Entry;
 import java.security.KeyStore.PasswordProtection;
@@ -25,12 +27,15 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableEntryException;
+import java.security.cert.CRLException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -53,6 +58,7 @@ public class HttpService implements ConfigurableComponent {
 
     private static final String KURA_JETTY_PID = "kura.default";
     private static final String KURA_HTTPS_KEY_STORE_PASSWORD_KEY = "kura.https.keyStorePassword";
+    private static final String CRL_PATH = "./revocation";
 
     private static final Logger logger = LoggerFactory.getLogger(HttpService.class);
 
@@ -175,6 +181,16 @@ public class HttpService implements ConfigurableComponent {
 
         if (customizerClass instanceof String) {
             config.put(JettyConstants.CUSTOMIZER_CLASS, customizerClass);
+        }
+
+        final boolean isRevocationEnabled = this.options.isRevocationEnabled();
+
+        config.put("org.eclipse.kura.revocation.check.enabled", isRevocationEnabled);
+
+        final List<String> crlPaths = this.options.getRevocationURIs();
+
+        if (isRevocationEnabled && !crlPaths.isEmpty() && buildCrl(crlPaths, CRL_PATH)) {
+            config.put("org.eclipse.kura.revocation.crl.path", CRL_PATH);
         }
 
         return config;
@@ -382,6 +398,62 @@ public class HttpService implements ConfigurableComponent {
         }
 
         return ks;
+    }
+
+    private static void verifyCRL(final File file) throws IOException, CRLException, CertificateException {
+        try (final FileInputStream in = new FileInputStream(file)) {
+            CertificateFactory.getInstance("X.509").generateCRL(in);
+        }
+    }
+
+    private static boolean buildCrl(final List<String> urls, final String outPath) {
+
+        boolean haveCrl = false;
+
+        try (final FileOutputStream crlOs = new FileOutputStream(outPath)) {
+
+            for (final String url : urls) {
+
+                final File temp = File.createTempFile("crl" + System.currentTimeMillis(), null);
+
+                try (final OutputStream tempOs = new FileOutputStream(temp);
+                        final InputStream in = new URL(url).openStream()) {
+                    logger.info("fethcing CRL at URL {}...", url);
+                    copy(in, tempOs);
+                    logger.info("fethcing CRL at URL {}...done", url);
+
+                    logger.info("verifyng CRL at URL {}...", url);
+                    verifyCRL(temp);
+                    logger.info("verifyng CRL at URL {}...done", url);
+
+                } catch (final Exception e) {
+                    logger.warn("failed to get CRL at URL {}", url);
+                    continue;
+                }
+
+                try (final InputStream tempIs = new FileInputStream(temp)) {
+                    copy(tempIs, crlOs);
+                }
+
+                haveCrl = true;
+            }
+        } catch (final IOException e) {
+            logger.warn("failed to write CRL path", e);
+        }
+
+        return haveCrl;
+
+    }
+
+    private static void copy(final InputStream in, final OutputStream out) throws IOException {
+        final byte[] buf = new byte[4096];
+
+        int rd;
+
+        while ((rd = in.read(buf)) > 0) {
+            out.write(buf, 0, rd);
+        }
+
     }
 
     private boolean isKeyStoreAccessible(String location, char[] password) {

@@ -67,6 +67,22 @@
             required="false"
             default="changeit" 
             description="Specifies the password for accessing and verifying the configured keystore."/>
+        
+        <AD id="https.revocation.check.enabled"  
+            name="https.revocation.check.enabled"
+            type="Boolean"
+            cardinality="0" 
+            required="false"
+            default="true" 
+            description="Specifies whether to check revocation status of client certificats."/>
+        
+        <AD id="https.client.revocation.urls"  
+            name="https.client.revocation.urls"
+            type="String"
+            cardinality="0" 
+            required="false"
+            default="[]" 
+            description="Specifies a JSON list of client certificate revocation sources URIs, use crl: for CRL revocation lists and ocsp: for OCSP responders."/>
     </OCD>
     
     <Designate pid="org.eclipse.kura.http.server.manager.HttpService">

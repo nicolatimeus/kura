@@ -13,20 +13,35 @@
  *******************************************************************************/
 package org.eclipse.kura.jetty.customizer;
 
+import java.io.FileInputStream;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.TrustAnchor;
+import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.SessionCookieConfig;
 
+import org.eclipse.equinox.http.jetty.JettyConstants;
 import org.eclipse.equinox.http.jetty.JettyCustomizer;
 import org.eclipse.jetty.server.ConnectionFactory;
 import org.eclipse.jetty.server.ForwardedRequestCustomizer;
+import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConfiguration.Customizer;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
+import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 public class KuraJettyCustomizer extends JettyCustomizer {
 
@@ -60,8 +75,60 @@ public class KuraJettyCustomizer extends JettyCustomizer {
 
     @Override
     public Object customizeHttpsConnector(final Object connector, final Dictionary<String, ?> settings) {
+
         customizeConnector(connector);
+
+        final ServerConnector serverConnector = (ServerConnector) connector;
+
+        addClientAuthSslConnector(serverConnector.getServer(), settings);
+
         return connector;
+    }
+
+    private void addClientAuthSslConnector(final Server server, final Dictionary<String, ?> settings) {
+
+        final boolean isRevocationEnabled = (Boolean) settings.get("org.eclipse.kura.revocation.check.enabled");
+
+        final SslContextFactory sslContextFactory = new SslContextFactory();
+
+        final String keyStorePath = (String) settings.get(JettyConstants.SSL_KEYSTORE);
+        final String keyStorePassword = (String) settings.get(JettyConstants.SSL_PASSWORD);
+
+        sslContextFactory.setKeyStorePath(keyStorePath);
+        sslContextFactory.setKeyStorePassword(keyStorePassword);
+        sslContextFactory.setKeyStoreType("JKS");
+        sslContextFactory.setProtocol("TLS");
+        sslContextFactory.setTrustManagerFactoryAlgorithm("PKIX");
+
+        sslContextFactory.setWantClientAuth(true);
+        sslContextFactory.setNeedClientAuth(true);
+
+        sslContextFactory.setEnableCRLDP(isRevocationEnabled);
+        sslContextFactory.setEnableOCSP(isRevocationEnabled);
+        sslContextFactory.setValidatePeerCerts(isRevocationEnabled);
+
+        if (isRevocationEnabled) {
+            final Object crlPath = settings.get("org.eclipse.kura.revocation.crl.path");
+            sslContextFactory.setCrlPath(crlPath instanceof String ? (String) crlPath : null);
+        }
+
+        final HttpConfiguration httpsConfig = new HttpConfiguration();
+        httpsConfig.addCustomizer(new SecureRequestCustomizer());
+
+        final Set<TrustAnchor> certs = loadCertificates(keyStorePath, keyStorePassword);
+
+        if (!certs.isEmpty()) {
+            httpsConfig.addCustomizer(
+                    (connector, config, req) -> req.setAttribute("org.eclipse.kura.web.trust.anchors", certs));
+        }
+
+        final ServerConnector connector = new ServerConnector(server,
+                new SslConnectionFactory(sslContextFactory, "http/1.1"), new HttpConnectionFactory(httpsConfig));
+        connector.setPort(4443);
+
+        customizeConnector(connector);
+
+        server.addConnector(connector);
     }
 
     private void customizeConnector(Object connector) {
@@ -71,7 +138,12 @@ public class KuraJettyCustomizer extends JettyCustomizer {
 
         final ServerConnector serverConnector = (ServerConnector) connector;
 
-        for (final ConnectionFactory factory : serverConnector.getConnectionFactories()) {
+        addCustomizer(serverConnector, new ForwardedRequestCustomizer());
+
+    }
+
+    private void addCustomizer(final ServerConnector connector, final Customizer customizer) {
+        for (final ConnectionFactory factory : connector.getConnectionFactories()) {
             if (!(factory instanceof HttpConnectionFactory)) {
                 continue;
             }
@@ -86,7 +158,39 @@ public class KuraJettyCustomizer extends JettyCustomizer {
                 httpConnectionFactory.getHttpConfiguration().setCustomizers(customizers);
             }
 
-            customizers.add(new ForwardedRequestCustomizer());
+            customizers.add(customizer);
+        }
+    }
+
+    private Set<TrustAnchor> loadCertificates(final String keyStorePath, final String keyStorePassword) {
+        try {
+            final KeyStore keyStore = KeyStore.getInstance("JKS");
+
+            try (final FileInputStream in = new FileInputStream(keyStorePath)) {
+                keyStore.load(in, keyStorePassword.toCharArray());
+            }
+
+            final Set<TrustAnchor> result = new HashSet<>();
+
+            final Enumeration<String> aliases = keyStore.aliases();
+
+            while (aliases.hasMoreElements()) {
+                final String alias = aliases.nextElement();
+
+                final Certificate cert = keyStore.getCertificate(alias);
+
+                if (!(cert instanceof X509Certificate)) {
+                    continue;
+                }
+
+                if (keyStore.isCertificateEntry(alias)) {
+                    result.add(new TrustAnchor((X509Certificate) cert, null));
+                }
+            }
+
+            return result;
+        } catch (final Exception e) {
+            return Collections.emptySet();
         }
     }
 

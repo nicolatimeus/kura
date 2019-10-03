@@ -168,7 +168,7 @@
 							</b:Panel>
 						</b:Column>
 						<b:Column size="MD_12"
-							addStyleNames="{style.services-list}">
+							addStyleNames="{style.services-list}" ui:field="servicesList">
 							<b:Panel>
 								<b:PanelHeader>
 									<b:Heading size="H3" text="Services" />

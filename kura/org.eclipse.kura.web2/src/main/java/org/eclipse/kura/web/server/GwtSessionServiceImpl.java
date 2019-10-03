@@ -9,6 +9,8 @@
  *******************************************************************************/
 package org.eclipse.kura.web.server;
 
+import java.util.Set;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,7 +19,8 @@ import javax.servlet.http.HttpSession;
 import org.eclipse.kura.web.Console;
 import org.eclipse.kura.web.session.Attributes;
 import org.eclipse.kura.web.shared.GwtKuraException;
-import org.eclipse.kura.web.shared.model.GwtConsoleUserOptions;
+import org.eclipse.kura.web.shared.model.GwtUserData;
+import org.eclipse.kura.web.shared.model.GwtUserInfo;
 import org.eclipse.kura.web.shared.model.GwtXSRFToken;
 import org.eclipse.kura.web.shared.service.GwtSessionService;
 import org.slf4j.Logger;
@@ -61,9 +64,20 @@ public class GwtSessionServiceImpl extends OsgiRemoteServiceServlet implements G
     }
 
     @Override
-    public GwtConsoleUserOptions getUserOptions(final GwtXSRFToken xsrfToken) throws GwtKuraException {
+    public GwtUserInfo getUserInfo(final GwtXSRFToken xsrfToken) throws GwtKuraException {
         checkXSRFToken(xsrfToken);
 
-        return Console.getConsoleOptions().getUserOptions();
+        final GwtUserInfo userInfo = new GwtUserInfo(Console.getConsoleOptions().getUserOptions());
+
+        final HttpSession session = getThreadLocalRequest().getSession(false);
+
+        final String userName = (String) session.getAttribute(Attributes.AUTORIZED_USER.getValue());
+        @SuppressWarnings("unchecked")
+        final Set<String> permissions = (Set<String>) session.getAttribute(Attributes.PERMISSIONS.getValue());
+        final boolean isAdmin = (Boolean) session.getAttribute(Attributes.IS_ADMIN.getValue());
+
+        userInfo.setUserData(new GwtUserData(userName, permissions, isAdmin));
+
+        return userInfo;
     }
 }

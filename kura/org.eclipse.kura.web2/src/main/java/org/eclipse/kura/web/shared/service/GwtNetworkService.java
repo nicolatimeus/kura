@@ -13,7 +13,9 @@ package org.eclipse.kura.web.shared.service;
 
 import java.util.List;
 
+import org.eclipse.kura.web.server.RequiredPermissions;
 import org.eclipse.kura.web.shared.GwtKuraException;
+import org.eclipse.kura.web.shared.KuraPermission;
 import org.eclipse.kura.web.shared.model.GwtFirewallNatEntry;
 import org.eclipse.kura.web.shared.model.GwtFirewallOpenPortEntry;
 import org.eclipse.kura.web.shared.model.GwtFirewallPortForwardEntry;
@@ -27,6 +29,7 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 @RemoteServiceRelativePath("network")
+@RequiredPermissions(KuraPermission.NETWORK_ADMIN)
 public interface GwtNetworkService extends RemoteService {
 
     public List<GwtNetInterfaceConfig> findNetInterfaceConfigurations() throws GwtKuraException;
@@ -60,4 +63,6 @@ public interface GwtNetworkService extends RemoteService {
 
     public List<GwtModemPdpEntry> findPdpContextInfo(GwtXSRFToken xsrfToken, String interfaceName)
             throws GwtKuraException;
+
+    public int getKuraWifiTopChannel(GwtXSRFToken xsrfToken) throws GwtKuraException;
 }

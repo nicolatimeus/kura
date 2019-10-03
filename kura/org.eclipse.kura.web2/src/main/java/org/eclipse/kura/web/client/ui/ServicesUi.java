@@ -182,7 +182,7 @@ public class ServicesUi extends AbstractServicesUi {
                 ServicesUi.this.apply.setEnabled(false);
                 ServicesUi.this.reset.setEnabled(false);
                 setDirty(false);
-                ServicesUi.this.entryClass.fetchAvailableServices(null);
+                ServicesUi.this.entryClass.fetchAvailableServices();
             });
             group.add(yes);
             footer.add(group);
@@ -323,7 +323,7 @@ public class ServicesUi extends AbstractServicesUi {
                                             setDirty(false);
                                             ServicesUi.this.originalConfig = ServicesUi.this.configurableComponent;
                                             context.defer(2000,
-                                                    () -> ServicesUi.this.entryClass.fetchAvailableServices(null));
+                                                    () -> ServicesUi.this.entryClass.fetchAvailableServices());
                                         }
                                     })))));
 

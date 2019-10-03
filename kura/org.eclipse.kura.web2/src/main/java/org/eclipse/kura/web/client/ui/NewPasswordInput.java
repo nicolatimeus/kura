@@ -10,7 +10,7 @@
 package org.eclipse.kura.web.client.ui;
 
 import org.eclipse.kura.web.client.messages.Messages;
-import org.eclipse.kura.web.shared.model.GwtConsoleUserOptions;
+import org.eclipse.kura.web.shared.model.GwtUserInfo;
 import org.gwtbootstrap3.client.ui.Input;
 import org.gwtbootstrap3.client.ui.form.validator.Validator;
 
@@ -33,7 +33,7 @@ public class NewPasswordInput extends Input {
     }
 
     @SuppressWarnings("unchecked")
-    public void setValidatorsFrom(final GwtConsoleUserOptions userOptions) {
+    public void setValidatorsFrom(final GwtUserInfo userOptions) {
         this.setValidators();
 
         final int minPasswordLength = userOptions.getPasswordMinimumLength();
