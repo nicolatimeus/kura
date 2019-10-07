@@ -10,6 +10,7 @@ public final class KuraPermission {
     public static final String SERVICES_ADMIN = "kura.services.admin";
     public static final String SETTINGS_ADMIN = "kura.settings.admin";
     public static final String USER_ADMIN = "kura.user.admin";
+    public static final String SECURITY_ADMIN = "kura.security.admin";
 
     private KuraPermission() {
     }

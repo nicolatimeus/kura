@@ -22,21 +22,26 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.eclipse.kura.KuraException;
+import org.eclipse.kura.certificate.CertificateInfo;
 import org.eclipse.kura.certificate.CertificatesService;
 import org.eclipse.kura.ssl.SslManagerService;
 import org.eclipse.kura.web.server.util.ServiceLocator;
 import org.eclipse.kura.web.session.Attributes;
 import org.eclipse.kura.web.shared.GwtKuraErrorCode;
 import org.eclipse.kura.web.shared.GwtKuraException;
+import org.eclipse.kura.web.shared.model.GwtCertificate;
 import org.eclipse.kura.web.shared.model.GwtXSRFToken;
 import org.eclipse.kura.web.shared.service.GwtCertificatesService;
 import org.slf4j.Logger;
@@ -173,7 +178,8 @@ public class GwtCertificatesServiceImpl extends OsgiRemoteServiceServlet impleme
 
             return certs.length;
         } catch (CertificateException | UnsupportedEncodingException | KuraException e) {
-            auditLogger.warn("UI Certificate - Failure - Failed to store application public chain for user: {}, session {}",
+            auditLogger.warn(
+                    "UI Certificate - Failure - Failed to store application public chain for user: {}, session {}",
                     session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId());
             throw new GwtKuraException(GwtKuraErrorCode.ILLEGAL_ARGUMENT, e);
         }
@@ -203,5 +209,80 @@ public class GwtCertificatesServiceImpl extends OsgiRemoteServiceServlet impleme
         } catch (final Exception e) {
             throw new GwtKuraException(GwtKuraErrorCode.INTERNAL_ERROR, e);
         }
+    }
+
+    @Override
+    public Integer storeLoginPublicChain(GwtXSRFToken xsrfToken, String publicCert) throws GwtKuraException {
+        checkXSRFToken(xsrfToken);
+
+        final HttpServletRequest request = getThreadLocalRequest();
+        final HttpSession session = request.getSession(false);
+
+        try {
+            X509Certificate[] certs = parsePublicCertificates(publicCert);
+
+            if (certs.length == 0) {
+                throw new GwtKuraException(GwtKuraErrorCode.ILLEGAL_ARGUMENT);
+            } else {
+                CertificatesService certificateService = ServiceLocator.getInstance()
+                        .getService(CertificatesService.class);
+
+                for (X509Certificate cert : certs) {
+                    String certificateAlias = "login-" + cert.getSerialNumber().toString();
+                    certificateService.storeCertificate(cert, certificateAlias);
+                }
+            }
+
+            auditLogger.info(
+                    "UI Certificate - Success - Successfully stored login public chain for user: {}, session {}",
+                    session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId());
+
+            return certs.length;
+        } catch (CertificateException | UnsupportedEncodingException | KuraException e) {
+            auditLogger.warn("UI Certificate - Failure - Failed to store login public chain for user: {}, session {}",
+                    session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId());
+            throw new GwtKuraException(GwtKuraErrorCode.ILLEGAL_ARGUMENT, e);
+        }
+    }
+
+    @Override
+    public List<GwtCertificate> listCertificates() throws GwtKuraException {
+        CertificatesService certificateService = ServiceLocator.getInstance().getService(CertificatesService.class);
+
+        if (certificateService == null) {
+            throw new GwtKuraException(GwtKuraErrorCode.INTERNAL_ERROR);
+        }
+
+        try {
+            Set<CertificateInfo> certInfos = certificateService.listStoredCertificates();
+            List<GwtCertificate> certificates = new ArrayList<>();
+            certInfos.forEach(certInfo -> {
+                GwtCertificate gwtCertificate = new GwtCertificate();
+                gwtCertificate.setAlias(certInfo.getAlias());
+                gwtCertificate.setType(certInfo.getType().name());
+                certificates.add(gwtCertificate);
+            });
+
+            return certificates;
+        } catch (KuraException e) {
+            throw new GwtKuraException(GwtKuraErrorCode.INTERNAL_ERROR);
+        }
+
+    }
+
+    @Override
+    public void removeCertificate(GwtXSRFToken xsrfToken, GwtCertificate certificate) throws GwtKuraException {
+        CertificatesService certificateService = ServiceLocator.getInstance().getService(CertificatesService.class);
+
+        if (certificateService == null) {
+            throw new GwtKuraException(GwtKuraErrorCode.INTERNAL_ERROR);
+        }
+
+        try {
+            certificateService.removeCertificate(certificate.getAlias());
+        } catch (KuraException e) {
+            throw new GwtKuraException(GwtKuraErrorCode.INTERNAL_ERROR);
+        }
+
     }
 }

@@ -17,8 +17,6 @@ import java.util.logging.Logger;
 import org.eclipse.kura.web.client.messages.Messages;
 import org.eclipse.kura.web.client.ui.Tab;
 import org.eclipse.kura.web.shared.model.GwtSession;
-import org.eclipse.kura.web.shared.service.GwtSecurityService;
-import org.eclipse.kura.web.shared.service.GwtSecurityServiceAsync;
 import org.eclipse.kura.web2.ext.WidgetFactory;
 import org.gwtbootstrap3.client.ui.NavTabs;
 import org.gwtbootstrap3.client.ui.TabContent;
@@ -27,11 +25,8 @@ import org.gwtbootstrap3.client.ui.TabPane;
 import org.gwtbootstrap3.client.ui.html.Paragraph;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -42,8 +37,6 @@ public class SettingsPanelUi extends Composite {
     private static final Logger logger = Logger.getLogger(SettingsPanelUi.class.getSimpleName());
     private static final Messages MSGS = GWT.create(Messages.class);
 
-    private final GwtSecurityServiceAsync gwtSecurityService = GWT.create(GwtSecurityService.class);
-
     interface SettingsPanelUiUiBinder extends UiBinder<Widget, SettingsPanelUi> {
     }
 
@@ -53,32 +46,13 @@ public class SettingsPanelUi extends Composite {
     SnapshotsTabUi snapshotsPanel;
 
     @UiField
-    ApplicationCertsTabUi appCertPanel;
-
-    @UiField
     SslTabUi sslConfigPanel;
-
-    @UiField
-    ServerCertsTabUi serverCertPanel;
-
-    @UiField
-    DeviceCertsTabUi deviceCertPanel;
-
-    @UiField
-    SecurityTabUi securityPanel;
 
     @UiField
     TabListItem snapshots;
     @UiField
-    TabListItem appCert;
-    @UiField
     TabListItem sslConfig;
-    @UiField
-    TabListItem serverCert;
-    @UiField
-    TabListItem deviceCert;
-    @UiField
-    TabListItem security;
+
     @UiField
     TabContent tabContent;
     @UiField
@@ -97,33 +71,8 @@ public class SettingsPanelUi extends Composite {
 
         this.snapshots.setVisible(true);
 
-        AsyncCallback<Boolean> callback = new AsyncCallback<Boolean>() {
-
-            @Override
-            public void onFailure(Throwable caught) {
-            }
-
-            @Override
-            public void onSuccess(Boolean result) {
-                if (result) {
-                    SettingsPanelUi.this.appCert.setVisible(true);
-                    SettingsPanelUi.this.security.setVisible(true);
-                }
-            }
-        };
-        this.gwtSecurityService.isSecurityServiceAvailable(callback);
-
         this.snapshots.addClickHandler(new Tab.RefreshHandler(this.snapshotsPanel));
-        this.sslConfig.addClickHandler(new ClickHandler() {
-
-            @Override
-            public void onClick(ClickEvent event) {
-                SettingsPanelUi.this.sslConfigPanel.load();
-            }
-        });
-        this.serverCert.addClickHandler(new Tab.RefreshHandler(this.serverCertPanel));
-        this.deviceCert.addClickHandler(new Tab.RefreshHandler(this.deviceCertPanel));
-        this.security.addClickHandler(new Tab.RefreshHandler(this.securityPanel));
+        this.sslConfig.addClickHandler(event -> SettingsPanelUi.this.sslConfigPanel.load());
     }
 
     public void load() {
@@ -138,13 +87,9 @@ public class SettingsPanelUi extends Composite {
 
     public boolean isDirty() {
         boolean snapshotsDirty = this.snapshotsPanel.isDirty();
-        boolean appCertDirty = this.appCertPanel.isDirty();
         boolean sslConfigDirty = this.sslConfigPanel.isDirty();
-        boolean serverCertDirty = this.serverCertPanel.isDirty();
-        boolean deviceCertDirty = this.deviceCertPanel.isDirty();
-        boolean securityDirty = this.securityPanel.isDirty();
 
-        return snapshotsDirty || appCertDirty || sslConfigDirty || serverCertDirty || deviceCertDirty || securityDirty;
+        return snapshotsDirty || sslConfigDirty;
     }
 
     public void addTab(final String name, final WidgetFactory widgetFactory) {
@@ -160,17 +105,13 @@ public class SettingsPanelUi extends Composite {
             tabPane.add(widgetFactory.buildWidget());
         });
 
-        navTabs.add(item);
-        tabContent.add(tabPane);
+        this.navTabs.add(item);
+        this.tabContent.add(tabPane);
     }
 
     public void setDirty(boolean b) {
 
         this.snapshotsPanel.setDirty(b);
-        this.appCertPanel.setDirty(b);
         this.sslConfigPanel.setDirty(b);
-        this.serverCertPanel.setDirty(b);
-        this.deviceCertPanel.setDirty(b);
-        this.securityPanel.setDirty(b);
     }
 }

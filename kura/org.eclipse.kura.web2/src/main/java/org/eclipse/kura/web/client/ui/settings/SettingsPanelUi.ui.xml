@@ -44,35 +44,15 @@
                 <b:NavTabs ui:field="navTabs">
                     <b:TabListItem dataTarget="#snapshotsPanel" text="Snapshots"
                         ui:field="snapshots" active="true"/>
-                    <b:TabListItem dataTarget="#appCertPanel" text="Application Certificate"
-                        ui:field="appCert" visible="false"/>
                     <b:TabListItem dataTarget="#sslConfigPanel" text="SSL Configuration"
                         ui:field="sslConfig" />
-                    <b:TabListItem dataTarget="#serverCertPanel" text="Server SSL Certificate"
-                        ui:field="serverCert" />
-                    <b:TabListItem dataTarget="#deviceCertPanel" text="Device SSL Certificate"
-                        ui:field="deviceCert" />
-                    <b:TabListItem dataTarget="#securityPanel" text="Security Policies"
-                        ui:field="security" visible="false"/>
                 </b:NavTabs>
                 <b:TabContent ui:field="tabContent">
                     <b:TabPane b:id="snapshotsPanel" active="true">
                         <settings:SnapshotsTabUi ui:field="snapshotsPanel"></settings:SnapshotsTabUi >
                     </b:TabPane>
-                    <b:TabPane b:id="appCertPanel">
-                        <settings:ApplicationCertsTabUi ui:field="appCertPanel"></settings:ApplicationCertsTabUi>
-                    </b:TabPane>
                     <b:TabPane b:id="sslConfigPanel">
                         <settings:SslTabUi ui:field="sslConfigPanel"></settings:SslTabUi>
-                    </b:TabPane>
-                    <b:TabPane b:id="serverCertPanel">
-                        <settings:ServerCertsTabUi ui:field="serverCertPanel"></settings:ServerCertsTabUi>
-                    </b:TabPane>
-                    <b:TabPane b:id="deviceCertPanel">
-                        <settings:DeviceCertsTabUi ui:field="deviceCertPanel"></settings:DeviceCertsTabUi>
-                    </b:TabPane>
-                    <b:TabPane b:id="securityPanel">
-                        <settings:SecurityTabUi ui:field="securityPanel"></settings:SecurityTabUi>
                     </b:TabPane>
                 </b:TabContent>
             </b:Well>

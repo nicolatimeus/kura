@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates
+ * Copyright (c) 2011, 2019 Eurotech and/or its affiliates
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -11,9 +11,12 @@
  *******************************************************************************/
 package org.eclipse.kura.web.shared.service;
 
+import java.util.List;
+
 import org.eclipse.kura.web.server.RequiredPermissions;
 import org.eclipse.kura.web.shared.GwtKuraException;
 import org.eclipse.kura.web.shared.KuraPermission;
+import org.eclipse.kura.web.shared.model.GwtCertificate;
 import org.eclipse.kura.web.shared.model.GwtXSRFToken;
 
 import com.google.gwt.user.client.rpc.RemoteService;
@@ -30,4 +33,10 @@ public interface GwtCertificatesService extends RemoteService {
 
     public Integer storeApplicationPublicChain(GwtXSRFToken xsrfToken, String publicCert, String alias)
             throws GwtKuraException;
+
+    public Integer storeLoginPublicChain(GwtXSRFToken xsrfToken, String publicCert) throws GwtKuraException;
+
+    public List<GwtCertificate> listCertificates() throws GwtKuraException;
+
+    public void removeCertificate(GwtXSRFToken xsrfToken, GwtCertificate certificate) throws GwtKuraException;
 }

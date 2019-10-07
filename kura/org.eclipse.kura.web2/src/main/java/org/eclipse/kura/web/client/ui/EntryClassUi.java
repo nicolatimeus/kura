@@ -29,6 +29,7 @@ import org.eclipse.kura.web.client.ui.drivers.assets.DriversAndAssetsUi;
 import org.eclipse.kura.web.client.ui.firewall.FirewallPanelUi;
 import org.eclipse.kura.web.client.ui.network.NetworkPanelUi;
 import org.eclipse.kura.web.client.ui.packages.PackagesPanelUi;
+import org.eclipse.kura.web.client.ui.security.SecurityPanelUi;
 import org.eclipse.kura.web.client.ui.settings.SettingsPanelUi;
 import org.eclipse.kura.web.client.ui.status.StatusPanelUi;
 import org.eclipse.kura.web.client.ui.wires.WiresPanelUi;
@@ -130,6 +131,8 @@ public class EntryClassUi extends Composite implements Context {
     @UiField
     AnchorListItem settings;
     @UiField
+    AnchorListItem security;
+    @UiField
     AnchorListItem wires;
     @UiField
     AnchorListItem cloudServices;
@@ -207,6 +210,7 @@ public class EntryClassUi extends Composite implements Context {
     private final DevicePanelUi deviceBinder = GWT.create(DevicePanelUi.class);
     private final PackagesPanelUi packagesBinder = GWT.create(PackagesPanelUi.class);
     private final SettingsPanelUi settingsBinder = GWT.create(SettingsPanelUi.class);
+    private final SecurityPanelUi securityBinder = GWT.create(SecurityPanelUi.class);
     private final FirewallPanelUi firewallBinder = GWT.create(FirewallPanelUi.class);
     private final NetworkPanelUi networkBinder = GWT.create(NetworkPanelUi.class);
     private final CloudConnectionsUi cloudServicesBinder = GWT.create(CloudConnectionsUi.class);
@@ -337,6 +341,8 @@ public class EntryClassUi extends Composite implements Context {
         initPackagesPanel();
 
         initSettingsPanel();
+        
+        initSecurityPanel();
 
         initCloudServicesPanel();
 
@@ -436,6 +442,30 @@ public class EntryClassUi extends Composite implements Context {
                 EntryClassUi.this.contentPanelBody.add(EntryClassUi.this.settingsBinder);
                 EntryClassUi.this.settingsBinder.setSession(EntryClassUi.this.currentSession);
                 EntryClassUi.this.settingsBinder.load();
+            });
+            renderDirtyConfigModal(b);
+        });
+    }
+    
+    private void initSecurityPanel() {
+        if (!checkPermission(KuraPermission.SECURITY_ADMIN)) {
+            this.security.setVisible(false);
+            return;
+        }
+
+        this.security.addClickHandler(event -> {
+            Button b = new Button(MSGS.yesButton(), event1 -> {
+                forceTabsCleaning();
+                if (EntryClassUi.this.modal != null) {
+                    EntryClassUi.this.modal.hide();
+                }
+                EntryClassUi.this.setSelectedAnchorListItem(EntryClassUi.this.security);
+                EntryClassUi.this.contentPanel.setVisible(true);
+                setHeader(MSGS.security(), null);
+                EntryClassUi.this.contentPanelBody.clear();
+                EntryClassUi.this.contentPanelBody.add(EntryClassUi.this.securityBinder);
+                EntryClassUi.this.securityBinder.setSession(EntryClassUi.this.currentSession);
+                EntryClassUi.this.securityBinder.load();
             });
             renderDirtyConfigModal(b);
         });
