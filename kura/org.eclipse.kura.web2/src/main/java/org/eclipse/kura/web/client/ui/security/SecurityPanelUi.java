@@ -49,7 +49,7 @@ public class SecurityPanelUi extends Composite {
 
     @UiField
     CertificateListTabUi certificateListPanel;
-    
+
     @UiField
     ApplicationCertsTabUi appCertPanel;
 
@@ -64,7 +64,7 @@ public class SecurityPanelUi extends Composite {
 
     @UiField
     SecurityTabUi securityPanel;
-    
+
     @UiField
     TabListItem certificateList;
     @UiField
@@ -92,19 +92,23 @@ public class SecurityPanelUi extends Composite {
         Paragraph description = new Paragraph();
         description.setText(MSGS.securityIntro());
         this.securityIntro.add(description);
-        
+
         this.serverCert.setVisible(true);
 
         AsyncCallback<Boolean> callback = new AsyncCallback<Boolean>() {
 
             @Override
             public void onFailure(Throwable caught) {
+                SecurityPanelUi.this.appCert.setVisible(false);
+                SecurityPanelUi.this.security.setVisible(false);
+                SecurityPanelUi.this.loginCert.setVisible(false);
             }
 
             @Override
             public void onSuccess(Boolean result) {
                 SecurityPanelUi.this.appCert.setVisible(result);
                 SecurityPanelUi.this.security.setVisible(result);
+                SecurityPanelUi.this.loginCert.setVisible(result);
             }
         };
         this.gwtSecurityService.isSecurityServiceAvailable(callback);

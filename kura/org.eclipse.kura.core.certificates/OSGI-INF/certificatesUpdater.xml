@@ -25,4 +25,10 @@
               unbind="unsetCryptoService"
               cardinality="1..1" 
               policy="static"/>
+    <reference name="ConfigurationService" 
+              bind="setConfigurationService"
+              unbind="unsetConfigurationService"
+              policy="static"
+              cardinality="1..1"
+              interface="org.eclipse.kura.configuration.ConfigurationService"/>
 </scr:component>

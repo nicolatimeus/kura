@@ -46,8 +46,13 @@ final class KeyStoreManagement {
             throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
         saveKeyStore(keystore, ENV_JAVA_KEYSTORE, new String(password).toCharArray());
     }
+    
+    static void saveKeyStore(String keystorePath, KeyStore keystore, char[] password)
+            throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+        saveKeyStore(keystore, keystorePath, new String(password).toCharArray());
+    }
 
-    private static KeyStore loadKeyStore(String location, char[] password)
+    static KeyStore loadKeyStore(String location, char[] password)
             throws IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
         FileInputStream is = null;
         try {
