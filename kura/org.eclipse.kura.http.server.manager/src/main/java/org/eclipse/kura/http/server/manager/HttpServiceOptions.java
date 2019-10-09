@@ -12,22 +12,11 @@
  *******************************************************************************/
 package org.eclipse.kura.http.server.manager;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonValue;
 
 public class HttpServiceOptions {
 
-	private static final Logger logger = LoggerFactory.getLogger(HttpServiceOptions.class);
-	
     static final String PROP_HTTP_ENABLED = "http.enabled";
     static final String PROP_HTTP_PORT = "http.port";
     static final String PROP_HTTPS_ENABLED = "https.enabled";
@@ -36,9 +25,9 @@ public class HttpServiceOptions {
     static final String PROP_HTTPS_KEYSTORE_PASSWORD = "https.keystore.password";
 
     static final String DEFAULT_HTTPS_KEYSTORE_PASSWORD = "changeit";
-    
+
     static final String PROP_REVOCATION_ENABLED = "https.revocation.check.enabled";
-    static final String PROP_REVOCATION_LISTS = "https.client.revocation.urls";
+    static final String PROP_REVOCATION_URI = "https.client.revocation.url";
 
     private static final Property<Boolean> HTTP_ENABLED = new Property<>(PROP_HTTP_ENABLED, true);
     private static final Property<Integer> HTTP_PORT = new Property<>(PROP_HTTP_PORT, 80);
@@ -47,7 +36,7 @@ public class HttpServiceOptions {
     private static final Property<String> HTTPS_KEYSTORE_PASSWORD = new Property<>(PROP_HTTPS_KEYSTORE_PASSWORD,
             DEFAULT_HTTPS_KEYSTORE_PASSWORD);
     private static final Property<Boolean> REVOCATION_ENABLED = new Property<>(PROP_REVOCATION_ENABLED, true);
-    private static final Property<String> REVOCATION_LISTS = new Property<>(PROP_REVOCATION_LISTS, "[]");
+    private static final Property<String> REVOCATION_URI = new Property<>(PROP_REVOCATION_URI, "[]");
 
     private final boolean httpEnabled;
     private final int httpPort;
@@ -56,13 +45,12 @@ public class HttpServiceOptions {
     private final String httpsKeystorePath;
     private final char[] httpsKeystorePasswordArray;
     private final boolean isRevocationEnabled;
-    private final List<String> certificateRevocationUris;
-    
+    private final String certificateRevocationUri;
+
     public HttpServiceOptions(final Map<String, Object> properties, final String kuraHome) {
         Property<String> httpsKeystorePathProp = new Property<>(PROP_HTTPS_KEYSTORE_PATH,
                 kuraHome + "/user/security/httpskeystore.ks");
-        
-        
+
         this.httpEnabled = HTTP_ENABLED.get(properties);
         this.httpPort = HTTP_PORT.get(properties);
         this.httpsEnabled = HTTPS_ENABLED.get(properties);
@@ -70,7 +58,7 @@ public class HttpServiceOptions {
         this.httpsKeystorePath = httpsKeystorePathProp.get(properties);
         this.httpsKeystorePasswordArray = HTTPS_KEYSTORE_PASSWORD.get(properties).toCharArray();
         this.isRevocationEnabled = REVOCATION_ENABLED.get(properties);
-        this.certificateRevocationUris = parseRevocationURIs(REVOCATION_LISTS.get(properties));
+        this.certificateRevocationUri = REVOCATION_URI.get(properties);
     }
 
     public boolean isHttpEnabled() {
@@ -96,30 +84,15 @@ public class HttpServiceOptions {
     public char[] getHttpsKeystorePassword() {
         return this.httpsKeystorePasswordArray;
     }
-    
+
     public boolean isRevocationEnabled() {
-		return isRevocationEnabled;
-	} 
-    
-    public List<String> getRevocationURIs() {
-    	return certificateRevocationUris;
+        return this.isRevocationEnabled;
     }
 
-    private static List<String> parseRevocationURIs(final String revocationURIs) {
-    	try {
-    		final List<String> result = new ArrayList<>();
-    		
-    		for (final JsonValue value : Json.parse(revocationURIs).asArray()) {
-    			result.add(value.asString());
-    		}
-    		
-    		return result;
-    	} catch (final Exception e) {
-    		logger.warn("failed to parse revocation list", e);
-    		return Collections.emptyList();
-    	}
+    public String getRevocationURI() {
+        return this.certificateRevocationUri;
     }
-    
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -164,7 +137,7 @@ public class HttpServiceOptions {
         } else if (!this.httpsKeystorePath.equals(other.httpsKeystorePath)) {
             return false;
         }
-        
+
         boolean result = true;
         if (this.httpsPort != other.httpsPort) {
             result = false;

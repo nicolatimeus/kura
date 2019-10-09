@@ -181,6 +181,12 @@ public class HttpService implements ConfigurableComponent {
 
         config.put("org.eclipse.kura.revocation.check.enabled", isRevocationEnabled);
 
+        final String ocspURI = this.options.getRevocationURI();
+
+        if (isRevocationEnabled && !ocspURI.trim().isEmpty()) {
+            config.put("org.eclipse.kura.revocation.crl.path", ocspURI);
+        }
+
         return config;
     }
 
