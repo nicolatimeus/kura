@@ -14,12 +14,21 @@
 package org.eclipse.kura.jetty.customizer;
 
 import java.io.FileInputStream;
+import java.net.URI;
 import java.security.KeyStore;
+import java.security.cert.CertPathValidator;
+import java.security.cert.CertStore;
 import java.security.cert.Certificate;
+import java.security.cert.CollectionCertStoreParameters;
+import java.security.cert.PKIXBuilderParameters;
+import java.security.cert.PKIXRevocationChecker;
 import java.security.cert.TrustAnchor;
+import java.security.cert.X509CertSelector;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
+import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -89,7 +98,45 @@ public class KuraJettyCustomizer extends JettyCustomizer {
 
         final boolean isRevocationEnabled = (Boolean) settings.get("org.eclipse.kura.revocation.check.enabled");
 
-        final SslContextFactory sslContextFactory = new SslContextFactory();
+        final SslContextFactory sslContextFactory = new SslContextFactory() {
+
+            protected PKIXBuilderParameters newPKIXBuilderParameters(KeyStore trustStore,
+                    Collection<? extends java.security.cert.CRL> crls) throws Exception {
+                PKIXBuilderParameters pbParams = new PKIXBuilderParameters(trustStore, new X509CertSelector());
+
+                pbParams.setMaxPathLength(getMaxCertPathLength());
+                pbParams.setRevocationEnabled(false);
+
+                if (isEnableOCSP()) {
+
+                    final PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) CertPathValidator
+                            .getInstance("PKIX").getRevocationChecker();
+
+                    final String responderURL = getOcspResponderURL();
+                    if (responderURL != null) {
+                        revocationChecker.setOcspResponder(new URI(responderURL));
+                    }
+                    revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.SOFT_FAIL,
+                            PKIXRevocationChecker.Option.NO_FALLBACK));
+
+                    pbParams.addCertPathChecker(revocationChecker);
+                }
+
+                if (getPkixCertPathChecker() != null)
+                    pbParams.addCertPathChecker(getPkixCertPathChecker());
+
+                if (crls != null && !crls.isEmpty()) {
+                    pbParams.addCertStore(CertStore.getInstance("Collection", new CollectionCertStoreParameters(crls)));
+                }
+
+                if (isEnableCRLDP()) {
+                    // Enable Certificate Revocation List Distribution Points (CRLDP) support
+                    System.setProperty("com.sun.security.enableCRLDP", "true");
+                }
+
+                return pbParams;
+            }
+        };
 
         final String keyStorePath = (String) settings.get(JettyConstants.SSL_KEYSTORE);
         final String keyStorePassword = (String) settings.get(JettyConstants.SSL_PASSWORD);
