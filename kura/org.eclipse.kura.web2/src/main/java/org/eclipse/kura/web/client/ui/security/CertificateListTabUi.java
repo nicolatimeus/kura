@@ -35,6 +35,8 @@ import org.gwtbootstrap3.client.ui.html.Span;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.cellview.client.ColumnSortEvent;
+import com.google.gwt.user.cellview.client.ColumnSortEvent.ListHandler;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
@@ -119,6 +121,7 @@ public class CertificateListTabUi extends Composite implements Tab {
                                 for (GwtCertificate pair : result) {
                                     CertificateListTabUi.this.certificatesDataProvider.getList().add(pair);
                                 }
+
                                 int snapshotsDataSize = CertificateListTabUi.this.certificatesDataProvider.getList()
                                         .size();
                                 if (snapshotsDataSize == 0) {
@@ -127,6 +130,9 @@ public class CertificateListTabUi extends Composite implements Tab {
                                     CertificateListTabUi.this.certificatesGrid.setVisibleRange(0, snapshotsDataSize);
                                     CertificateListTabUi.this.certificatesGrid.setVisible(true);
                                 }
+
+                                ColumnSortEvent.fire(CertificateListTabUi.this.certificatesGrid,
+                                        CertificateListTabUi.this.certificatesGrid.getColumnSortList());
                                 CertificateListTabUi.this.certificatesDataProvider.flush();
                                 EntryClassUi.hideWaitModal();
                             }
@@ -156,9 +162,25 @@ public class CertificateListTabUi extends Composite implements Tab {
             }
         };
         col2.setCellStyleNames("status-table-row");
+        col2.setSortable(true);
         this.certificatesGrid.addColumn(col2, MSGS.certificateType());
 
         this.certificatesDataProvider.addDataDisplay(this.certificatesGrid);
+
+        ListHandler<GwtCertificate> columnSortHandler = new ListHandler<>(this.certificatesDataProvider.getList());
+        columnSortHandler.setComparator(col2, (o1, o2) -> {
+            if (o1 == o2) {
+                return 0;
+            }
+
+            // Compare the name columns.
+            if (o1 != null) {
+                return o2 != null ? o1.getType().name().compareTo(o2.getType().name()) : 1;
+            }
+            return -1;
+        });
+        this.certificatesGrid.addColumnSortHandler(columnSortHandler);
+        this.certificatesGrid.getColumnSortList().push(col2);
     }
 
     private void initInterfaceButtons() {

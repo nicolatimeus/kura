@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates
+ * Copyright (c) 2019 Eurotech and/or its affiliates
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -37,11 +37,11 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class DeviceCertsTabUi extends Composite implements Tab {
+public class HttpsUserCertsTabUi extends Composite implements Tab {
 
-    private static DeviceCertsTabUiUiBinder uiBinder = GWT.create(DeviceCertsTabUiUiBinder.class);
+    private static HttpsUserCertsTabUiUiBinder uiBinder = GWT.create(HttpsUserCertsTabUiUiBinder.class);
 
-    interface DeviceCertsTabUiUiBinder extends UiBinder<Widget, DeviceCertsTabUi> {
+    interface HttpsUserCertsTabUiUiBinder extends UiBinder<Widget, HttpsUserCertsTabUi> {
     }
 
     private static final Messages MSGS = GWT.create(Messages.class);
@@ -54,23 +54,11 @@ public class DeviceCertsTabUi extends Composite implements Tab {
     @UiField
     HTMLPanel description;
     @UiField
-    Form deviceSslCertsForm;
-    @UiField
-    FormGroup groupStorageAliasForm;
-    @UiField
-    FormGroup groupPrivateKeyForm;
+    Form httpsUserCertsForm;
     @UiField
     FormGroup groupCertForm;
     @UiField
-    FormLabel storageAliasLabel;
-    @UiField
-    FormLabel privateKeyLabel;
-    @UiField
     FormLabel certificateLabel;
-    @UiField
-    Input storageAliasInput;
-    @UiField
-    TextArea privateKeyInput;
     @UiField
     TextArea certificateInput;
     @UiField
@@ -78,7 +66,7 @@ public class DeviceCertsTabUi extends Composite implements Tab {
     @UiField
     Button apply;
 
-    public DeviceCertsTabUi() {
+    public HttpsUserCertsTabUi() {
         initWidget(uiBinder.createAndBindUi(this));
         initForm();
 
@@ -99,10 +87,7 @@ public class DeviceCertsTabUi extends Composite implements Tab {
 
     @Override
     public boolean isValid() {
-        boolean validAlias = isAliasValid();
-        boolean validPrivateKey = isPrivateKeyValid();
-        boolean validDeviceCert = isDeviceCertValid();
-        return validAlias && validPrivateKey && validDeviceCert;
+        return isServerCertValid();
     }
 
     @Override
@@ -116,51 +101,34 @@ public class DeviceCertsTabUi extends Composite implements Tab {
     private void initForm() {
         StringBuilder title = new StringBuilder();
         title.append("<p>");
-        title.append(MSGS.settingsMAuthDescription1());
+        title.append(MSGS.loginAddCertDescription1());
         title.append(" ");
-        title.append(MSGS.settingsMAuthDescription2());
+        title.append(MSGS.loginAddCertDescription2());
         title.append("</p>");
         this.description.add(new Span(title.toString()));
 
-        this.storageAliasLabel.setText(MSGS.settingsStorageAliasLabel());
-        this.storageAliasInput.addChangeHandler(event -> {
-            isAliasValid();
-            setDirty(true);
-            DeviceCertsTabUi.this.apply.setEnabled(true);
-            DeviceCertsTabUi.this.reset.setEnabled(true);
-        });
-
-        this.privateKeyLabel.setText(MSGS.settingsPrivateCertLabel());
-        this.privateKeyInput.setVisibleLines(20);
-        this.privateKeyInput.addChangeHandler(event -> {
-            isPrivateKeyValid();
-            setDirty(true);
-            DeviceCertsTabUi.this.apply.setEnabled(true);
-            DeviceCertsTabUi.this.reset.setEnabled(true);
-        });
-
-        this.certificateLabel.setText(MSGS.settingsPublicCertLabel());
+        this.certificateLabel.setText(MSGS.loginAddCertLabel());
         this.certificateInput.setVisibleLines(20);
         this.certificateInput.addChangeHandler(event -> {
-            isDeviceCertValid();
+            isServerCertValid();
             setDirty(true);
-            DeviceCertsTabUi.this.apply.setEnabled(true);
-            DeviceCertsTabUi.this.reset.setEnabled(true);
+            HttpsUserCertsTabUi.this.apply.setEnabled(true);
+            HttpsUserCertsTabUi.this.reset.setEnabled(true);
         });
 
         this.reset.setText(MSGS.reset());
         this.reset.addClickHandler(event -> {
             reset();
             setDirty(false);
-            DeviceCertsTabUi.this.apply.setEnabled(false);
-            DeviceCertsTabUi.this.reset.setEnabled(false);
+            HttpsUserCertsTabUi.this.apply.setEnabled(false);
+            HttpsUserCertsTabUi.this.reset.setEnabled(false);
         });
 
         this.apply.setText(MSGS.apply());
         this.apply.addClickHandler(event -> {
             if (isValid()) {
                 EntryClassUi.showWaitModal();
-                DeviceCertsTabUi.this.gwtXSRFService.generateSecurityToken(new AsyncCallback<GwtXSRFToken>() {
+                HttpsUserCertsTabUi.this.gwtXSRFService.generateSecurityToken(new AsyncCallback<GwtXSRFToken>() {
 
                     @Override
                     public void onFailure(Throwable ex) {
@@ -170,14 +138,12 @@ public class DeviceCertsTabUi extends Composite implements Tab {
 
                     @Override
                     public void onSuccess(GwtXSRFToken token) {
-                        DeviceCertsTabUi.this.gwtCertificatesService.storeSSLPublicPrivateKeys(token,
-                                DeviceCertsTabUi.this.privateKeyInput.getValue(),
-                                DeviceCertsTabUi.this.certificateInput.getValue(), null,
-                                DeviceCertsTabUi.this.storageAliasInput.getValue(), new AsyncCallback<Integer>() {
+                        HttpsUserCertsTabUi.this.gwtCertificatesService.storeLoginPublicChain(token,
+                                HttpsUserCertsTabUi.this.certificateInput.getValue(), new AsyncCallback<Integer>() {
 
                                     @Override
                                     public void onFailure(Throwable caught) {
-                                        FailureHandler.handle(caught);
+                                        FailureHandler.showErrorMessage("Error storing login certificates", caught.getStackTrace());
                                         EntryClassUi.hideWaitModal();
                                     }
 
@@ -185,8 +151,8 @@ public class DeviceCertsTabUi extends Composite implements Tab {
                                     public void onSuccess(Integer certsStored) {
                                         reset();
                                         setDirty(false);
-                                        DeviceCertsTabUi.this.apply.setEnabled(false);
-                                        DeviceCertsTabUi.this.reset.setEnabled(false);
+                                        HttpsUserCertsTabUi.this.apply.setEnabled(false);
+                                        HttpsUserCertsTabUi.this.reset.setEnabled(false);
                                         EntryClassUi.hideWaitModal();
                                     }
                                 });
@@ -197,32 +163,10 @@ public class DeviceCertsTabUi extends Composite implements Tab {
     }
 
     private void reset() {
-        this.storageAliasInput.setText("");
-        this.privateKeyInput.setText("");
         this.certificateInput.setText("");
     }
 
-    private boolean isAliasValid() {
-        if (this.storageAliasInput.getText() == null || "".equals(this.storageAliasInput.getText().trim())) {
-            this.groupStorageAliasForm.setValidationState(ValidationState.ERROR);
-            return false;
-        } else {
-            this.groupStorageAliasForm.setValidationState(ValidationState.NONE);
-            return true;
-        }
-    }
-
-    private boolean isPrivateKeyValid() {
-        if (this.certificateInput.getText() == null || "".equals(this.certificateInput.getText().trim())) {
-            this.groupCertForm.setValidationState(ValidationState.ERROR);
-            return false;
-        } else {
-            this.groupCertForm.setValidationState(ValidationState.NONE);
-            return true;
-        }
-    }
-
-    private boolean isDeviceCertValid() {
+    private boolean isServerCertValid() {
         if (this.certificateInput.getText() == null || "".equals(this.certificateInput.getText().trim())) {
             this.groupCertForm.setValidationState(ValidationState.ERROR);
             return false;

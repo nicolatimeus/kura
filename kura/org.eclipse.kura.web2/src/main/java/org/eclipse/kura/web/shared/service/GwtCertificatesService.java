@@ -26,7 +26,7 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 @RequiredPermissions(KuraPermission.SETTINGS_ADMIN)
 public interface GwtCertificatesService extends RemoteService {
 
-    public Integer storePublicPrivateKeys(GwtXSRFToken xsrfToken, String privateCert, String publicCert,
+    public Integer storeSSLPublicPrivateKeys(GwtXSRFToken xsrfToken, String privateCert, String publicCert,
             String password, String alias) throws GwtKuraException;
 
     public Integer storeSSLPublicChain(GwtXSRFToken xsrfToken, String publicCert, String alias) throws GwtKuraException;
@@ -35,6 +35,9 @@ public interface GwtCertificatesService extends RemoteService {
             throws GwtKuraException;
 
     public Integer storeLoginPublicChain(GwtXSRFToken xsrfToken, String publicCert) throws GwtKuraException;
+
+    public Integer storeLoginPublicPrivateKeys(GwtXSRFToken xsrfToken, String privateKey, String publicCert,
+            String password, String alias) throws GwtKuraException;
 
     public List<GwtCertificate> listCertificates() throws GwtKuraException;
 

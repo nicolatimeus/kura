@@ -57,8 +57,8 @@ public class GwtCertificatesServiceImpl extends OsgiRemoteServiceServlet impleme
     private static final Decoder BASE64_DECODER = Base64.getDecoder();
 
     @Override
-    public Integer storePublicPrivateKeys(GwtXSRFToken xsrfToken, String privateKey, String publicKey, String password,
-            String alias) throws GwtKuraException {
+    public Integer storeSSLPublicPrivateKeys(GwtXSRFToken xsrfToken, String privateKey, String publicKey,
+            String password, String alias) throws GwtKuraException {
         checkXSRFToken(xsrfToken);
 
         final HttpServletRequest request = getThreadLocalRequest();
@@ -80,7 +80,7 @@ public class GwtCertificatesServiceImpl extends OsgiRemoteServiceServlet impleme
             Certificate[] certs = parsePublicCertificates(publicKey);
 
             if (privKey == null) {
-                auditLogger.warn("UI Certificate - Failure - Failed to store key for user: {}, session {}",
+                auditLogger.warn("UI Certificate - Failure - Failed to store SSL key for user: {}, session {}",
                         session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId());
                 throw new GwtKuraException(GwtKuraErrorCode.ILLEGAL_ARGUMENT);
             } else {
@@ -92,11 +92,11 @@ public class GwtCertificatesServiceImpl extends OsgiRemoteServiceServlet impleme
                 sslService.installPrivateKey(alias, privKey, privateKeyPassword, certs);
             }
 
-            auditLogger.info("UI Certificate - Success - Successfully stored key for user: {}, session {}",
+            auditLogger.info("UI Certificate - Success - Successfully stored SSL key for user: {}, session {}",
                     session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId());
             return 1;
         } catch (GeneralSecurityException | IOException e) {
-            auditLogger.warn("UI Certificate - Failure - Failed to store key for user: {}, session {}",
+            auditLogger.warn("UI Certificate - Failure - Failed to store SSL key for user: {}, session {}",
                     session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId());
             throw new GwtKuraException(GwtKuraErrorCode.ILLEGAL_ARGUMENT, e);
         }
@@ -253,6 +253,9 @@ public class GwtCertificatesServiceImpl extends OsgiRemoteServiceServlet impleme
             throw new GwtKuraException(GwtKuraErrorCode.INTERNAL_ERROR);
         }
 
+        final HttpServletRequest request = getThreadLocalRequest();
+        final HttpSession session = request.getSession(false);
+
         try {
             Set<CertificateInfo> certInfos = certificateService.listStoredCertificates();
             List<GwtCertificate> certificates = new ArrayList<>();
@@ -263,8 +266,13 @@ public class GwtCertificatesServiceImpl extends OsgiRemoteServiceServlet impleme
                 certificates.add(gwtCertificate);
             });
 
+            auditLogger.info(
+                    "UI Certificate - Success - Successfully listed stored certificates for user: {}, session {}",
+                    session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId());
             return certificates;
         } catch (KuraException e) {
+            auditLogger.warn("UI Certificate - Failure - Failed to list certificates for user: {}, session {}",
+                    session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId());
             throw new GwtKuraException(GwtKuraErrorCode.INTERNAL_ERROR);
         }
 
@@ -278,11 +286,69 @@ public class GwtCertificatesServiceImpl extends OsgiRemoteServiceServlet impleme
             throw new GwtKuraException(GwtKuraErrorCode.INTERNAL_ERROR);
         }
 
+        final HttpServletRequest request = getThreadLocalRequest();
+        final HttpSession session = request.getSession(false);
+
+        String alias = certificate.getAlias();
+
         try {
-            certificateService.removeCertificate(certificate.getAlias());
+            certificateService.removeCertificate(alias);
+            auditLogger.info(
+                    "UI Certificate - Success - Successfully removed certificate for user: {}, session {}, alias: {}",
+                    session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId(), alias);
         } catch (KuraException e) {
+            auditLogger.warn(
+                    "UI Certificate - Failure - Failed to remove certificate for user: {}, session {}, alias: {}",
+                    session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId(), alias);
             throw new GwtKuraException(GwtKuraErrorCode.INTERNAL_ERROR);
         }
 
+    }
+
+    @Override
+    public Integer storeLoginPublicPrivateKeys(GwtXSRFToken xsrfToken, String privateKey, String publicKey,
+            String password, String alias) throws GwtKuraException {
+        checkXSRFToken(xsrfToken);
+
+        final HttpServletRequest request = getThreadLocalRequest();
+        final HttpSession session = request.getSession(false);
+
+        try {
+            // Remove header if exists
+            String key = privateKey.replace("-----BEGIN PRIVATE KEY-----", "").replace("\n", "");
+            key = key.replace("-----END PRIVATE KEY-----", "");
+
+            byte[] conversion = base64Decode(key);
+            // Parse Base64 - after PKCS8
+            PKCS8EncodedKeySpec specPriv = new PKCS8EncodedKeySpec(conversion);
+
+            // Create RSA key
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            PrivateKey privKey = kf.generatePrivate(specPriv);
+
+            Certificate[] certs = parsePublicCertificates(publicKey);
+
+            if (privKey == null) {
+                auditLogger.warn("UI Certificate - Failure - Failed to store UI HTTPS key for user: {}, session {}",
+                        session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId());
+                throw new GwtKuraException(GwtKuraErrorCode.ILLEGAL_ARGUMENT);
+            } else {
+                char[] privateKeyPassword = new char[0];
+                if (password != null) {
+                    privateKeyPassword = password.toCharArray();
+                }
+                CertificatesService certificateService = ServiceLocator.getInstance()
+                        .getService(CertificatesService.class);
+                certificateService.installPrivateKey("login-" + alias, privKey, privateKeyPassword, certs);
+            }
+
+            auditLogger.info("UI Certificate - Success - Successfully stored UI HTTPS key for user: {}, session {}",
+                    session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId());
+            return 1;
+        } catch (GeneralSecurityException | IOException | KuraException e) {
+            auditLogger.warn("UI Certificate - Failure - Failed to store UI HTTPS key for user: {}, session {}",
+                    session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId());
+            throw new GwtKuraException(GwtKuraErrorCode.ILLEGAL_ARGUMENT, e);
+        }
     }
 }

@@ -60,7 +60,9 @@ public class SecurityPanelUi extends Composite {
     DeviceCertsTabUi deviceCertPanel;
 
     @UiField
-    LoginCertsTabUi loginCertPanel;
+    HttpsServerCertsTabUi httpsServerCertPanel;
+    @UiField
+    HttpsUserCertsTabUi httpsUserCertPanel;
 
     @UiField
     SecurityTabUi securityPanel;
@@ -74,7 +76,9 @@ public class SecurityPanelUi extends Composite {
     @UiField
     TabListItem deviceCert;
     @UiField
-    TabListItem loginCert;
+    TabListItem httpsServerCert;
+    @UiField
+    TabListItem httpsUserCert;
     @UiField
     TabListItem security;
     @UiField
@@ -101,14 +105,14 @@ public class SecurityPanelUi extends Composite {
             public void onFailure(Throwable caught) {
                 SecurityPanelUi.this.appCert.setVisible(false);
                 SecurityPanelUi.this.security.setVisible(false);
-                SecurityPanelUi.this.loginCert.setVisible(false);
+                SecurityPanelUi.this.httpsUserCert.setVisible(false);
             }
 
             @Override
             public void onSuccess(Boolean result) {
                 SecurityPanelUi.this.appCert.setVisible(result);
                 SecurityPanelUi.this.security.setVisible(result);
-                SecurityPanelUi.this.loginCert.setVisible(result);
+                SecurityPanelUi.this.httpsUserCert.setVisible(result);
             }
         };
         this.gwtSecurityService.isSecurityServiceAvailable(callback);
@@ -116,7 +120,8 @@ public class SecurityPanelUi extends Composite {
         this.certificateList.addClickHandler(new Tab.RefreshHandler(this.certificateListPanel));
         this.serverCert.addClickHandler(new Tab.RefreshHandler(this.serverCertPanel));
         this.deviceCert.addClickHandler(new Tab.RefreshHandler(this.deviceCertPanel));
-        this.loginCert.addClickHandler(new Tab.RefreshHandler(this.loginCertPanel));
+        this.httpsServerCert.addClickHandler(new Tab.RefreshHandler(this.httpsServerCertPanel));
+        this.httpsUserCert.addClickHandler(new Tab.RefreshHandler(this.httpsUserCertPanel));
         this.security.addClickHandler(new Tab.RefreshHandler(this.securityPanel));
     }
 
@@ -135,10 +140,11 @@ public class SecurityPanelUi extends Composite {
         boolean appCertDirty = this.appCertPanel.isDirty();
         boolean serverCertDirty = this.serverCertPanel.isDirty();
         boolean deviceCertDirty = this.deviceCertPanel.isDirty();
-        boolean loginCertDirty = this.loginCertPanel.isDirty();
+        boolean httpsServerCertDirty = this.httpsServerCertPanel.isDirty();
+        boolean httpsUserCertDirty = this.httpsUserCertPanel.isDirty();
         boolean securityDirty = this.securityPanel.isDirty();
 
-        return certListDirty || appCertDirty || serverCertDirty || deviceCertDirty || securityDirty || loginCertDirty;
+        return certListDirty || appCertDirty || serverCertDirty || deviceCertDirty || securityDirty || httpsUserCertDirty || httpsServerCertDirty;
     }
 
     public void addTab(final String name, final WidgetFactory widgetFactory) {
@@ -164,6 +170,7 @@ public class SecurityPanelUi extends Composite {
         this.serverCertPanel.setDirty(b);
         this.deviceCertPanel.setDirty(b);
         this.securityPanel.setDirty(b);
-        this.loginCertPanel.setDirty(b);
+        this.httpsServerCertPanel.setDirty(b);
+        this.httpsUserCertPanel.setDirty(b);
     }
 }

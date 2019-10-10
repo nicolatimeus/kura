@@ -50,8 +50,10 @@
                         ui:field="deviceCert" />
                     <b:TabListItem dataTarget="#appCertPanel" text="Application Certificate"
                         ui:field="appCert" visible="false"/>
-                    <b:TabListItem dataTarget="#loginCertPanel" text="Login Certificate"
-                        ui:field="loginCert" />
+                    <b:TabListItem dataTarget="#httpsServerCertPanel" text="Https Server Certificate"
+                        ui:field="httpsServerCert" />
+                    <b:TabListItem dataTarget="#httpsUserCertPanel" text="Https Client Certificate"
+                        ui:field="httpsUserCert" />
                     <b:TabListItem dataTarget="#securityPanel" text="Security Policies"
                         ui:field="security" visible="false"/>
                 </b:NavTabs>
@@ -68,8 +70,11 @@
                     <b:TabPane b:id="appCertPanel">
                         <security:ApplicationCertsTabUi ui:field="appCertPanel"></security:ApplicationCertsTabUi>
                     </b:TabPane>
-                    <b:TabPane b:id="loginCertPanel">
-                        <security:LoginCertsTabUi ui:field="loginCertPanel"></security:LoginCertsTabUi>
+                    <b:TabPane b:id="httpsServerCertPanel">
+                        <security:HttpsServerCertsTabUi ui:field="httpsServerCertPanel"></security:HttpsServerCertsTabUi>
+                    </b:TabPane>
+                    <b:TabPane b:id="httpsUserCertPanel">
+                        <security:HttpsUserCertsTabUi ui:field="httpsUserCertPanel"></security:HttpsUserCertsTabUi>
                     </b:TabPane>
                     <b:TabPane b:id="securityPanel">
                         <security:SecurityTabUi ui:field="securityPanel"></security:SecurityTabUi>

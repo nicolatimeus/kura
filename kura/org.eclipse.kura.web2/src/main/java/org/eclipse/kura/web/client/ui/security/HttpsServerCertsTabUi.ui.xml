@@ -32,7 +32,6 @@
     }
     </ui:style>
 
-
     <b:Container fluid="true">
         <b:Column size="MD_12">
             <b:Row>
@@ -51,8 +50,23 @@
                 <g:HTMLPanel ui:field="description">
                 </g:HTMLPanel>
 
-                <b:Form ui:field="loginCertsForm">
+                <b:Form ui:field="httpsServerCertsForm">
                     <b:FieldSet>
+                        <b:FormGroup ui:field="groupStorageAliasForm">
+                            <b:FormLabel for="storageAliasInput"
+                                ui:field="storageAliasLabel" />
+                            <b:Input type="TEXT" b:id="storageAlias"
+                                ui:field="storageAliasInput" />
+                        </b:FormGroup>
+
+                        <b:FormGroup ui:field="groupPrivateKeyForm">
+                            <b:FormLabel for="privateKeyInput"
+                                ui:field="privateKeyLabel" />
+                            <b:TextArea b:id="privateKeyInput"
+                                addStyleNames="{style.center-panel}"
+                                ui:field="privateKeyInput" />
+                        </b:FormGroup>
+
                         <b:FormGroup ui:field="groupCertForm">
                             <b:FormLabel for="certificateInput"
                                 ui:field="certificateLabel" />

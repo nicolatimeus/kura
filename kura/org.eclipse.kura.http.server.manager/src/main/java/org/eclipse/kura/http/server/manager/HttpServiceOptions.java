@@ -97,12 +97,15 @@ public class HttpServiceOptions {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
+        result = prime * result
+                + (this.certificateRevocationUri == null ? 0 : this.certificateRevocationUri.hashCode());
         result = prime * result + (this.httpEnabled ? 1231 : 1237);
         result = prime * result + this.httpPort;
         result = prime * result + (this.httpsEnabled ? 1231 : 1237);
         result = prime * result + Arrays.hashCode(this.httpsKeystorePasswordArray);
         result = prime * result + (this.httpsKeystorePath == null ? 0 : this.httpsKeystorePath.hashCode());
         result = prime * result + this.httpsPort;
+        result = prime * result + (this.isRevocationEnabled ? 1231 : 1237);
         return result;
     }
 
@@ -118,6 +121,13 @@ public class HttpServiceOptions {
             return false;
         }
         HttpServiceOptions other = (HttpServiceOptions) obj;
+        if (this.certificateRevocationUri == null) {
+            if (other.certificateRevocationUri != null) {
+                return false;
+            }
+        } else if (!this.certificateRevocationUri.equals(other.certificateRevocationUri)) {
+            return false;
+        }
         if (this.httpEnabled != other.httpEnabled) {
             return false;
         }
@@ -137,9 +147,11 @@ public class HttpServiceOptions {
         } else if (!this.httpsKeystorePath.equals(other.httpsKeystorePath)) {
             return false;
         }
-
-        boolean result = true;
         if (this.httpsPort != other.httpsPort) {
+            return false;
+        }
+        boolean result = true;
+        if (this.isRevocationEnabled != other.isRevocationEnabled) {
             result = false;
         }
         return result;

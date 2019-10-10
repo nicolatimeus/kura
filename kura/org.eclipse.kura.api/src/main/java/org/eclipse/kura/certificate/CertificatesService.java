@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.kura.certificate;
 
+import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.Set;
@@ -125,5 +126,17 @@ public interface CertificatesService {
      * @since 2.2
      */
     public Set<CertificateInfo> listStoredCertificates() throws KuraException;
+    
+    /**
+     * 
+     * @param alias
+     * @param privateKey
+     * @param password
+     * @param publicCerts
+     * @throws KuraException
+     * 
+     * @since 2.2
+     */
+    public void installPrivateKey(String alias, PrivateKey privateKey, char[] password, Certificate[] publicCerts) throws KuraException;
 
 }

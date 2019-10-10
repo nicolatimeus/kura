@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Collections;
@@ -246,5 +247,11 @@ public class CertificatesManager implements CertificatesService {
         loginCertAliases.forEach(loginCert -> certsInfo.add(new CertificateInfo(loginCert, CertificateType.LOGIN)));
         sslCertAliases.forEach(sslCertAlias -> certsInfo.add(new CertificateInfo(sslCertAlias, CertificateType.SSL)));
         return certsInfo;
+    }
+
+    @Override
+    public void installPrivateKey(String alias, PrivateKey privateKey, char[] password, Certificate[] publicCerts)
+            throws KuraException {
+        throw new KuraException(KuraErrorCode.OPERATION_NOT_SUPPORTED);
     }
 }
