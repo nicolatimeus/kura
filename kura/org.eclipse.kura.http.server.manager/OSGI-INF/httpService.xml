@@ -20,4 +20,6 @@
               bind="setConfigurationService"
               unbind="unsetConfigurationService"
               interface="org.eclipse.kura.configuration.ConfigurationService"/> 
+              
+   <property name="kura.ui.service.hide" type="Boolean" value="true"/>
 </scr:component>

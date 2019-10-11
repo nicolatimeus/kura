@@ -100,6 +100,7 @@ public class KuraJettyCustomizer extends JettyCustomizer {
 
         final SslContextFactory sslContextFactory = new SslContextFactory() {
 
+            @Override
             protected PKIXBuilderParameters newPKIXBuilderParameters(KeyStore trustStore,
                     Collection<? extends java.security.cert.CRL> crls) throws Exception {
                 PKIXBuilderParameters pbParams = new PKIXBuilderParameters(trustStore, new X509CertSelector());
@@ -116,14 +117,18 @@ public class KuraJettyCustomizer extends JettyCustomizer {
                     if (responderURL != null) {
                         revocationChecker.setOcspResponder(new URI(responderURL));
                     }
-                    revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.SOFT_FAIL,
-                            PKIXRevocationChecker.Option.NO_FALLBACK));
+                    final Object softFail = settings.get("org.eclipse.kura.revocation.soft.fail");
+                    if (softFail instanceof Boolean && (boolean) softFail) {
+                        revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.SOFT_FAIL,
+                                PKIXRevocationChecker.Option.NO_FALLBACK));
+                    }
 
                     pbParams.addCertPathChecker(revocationChecker);
                 }
 
-                if (getPkixCertPathChecker() != null)
+                if (getPkixCertPathChecker() != null) {
                     pbParams.addCertPathChecker(getPkixCertPathChecker());
+                }
 
                 if (crls != null && !crls.isEmpty()) {
                     pbParams.addCertStore(CertStore.getInstance("Collection", new CollectionCertStoreParameters(crls)));

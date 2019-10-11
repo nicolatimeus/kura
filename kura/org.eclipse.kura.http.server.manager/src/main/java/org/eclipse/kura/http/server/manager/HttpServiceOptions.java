@@ -28,6 +28,7 @@ public class HttpServiceOptions {
 
     static final String PROP_REVOCATION_ENABLED = "https.revocation.check.enabled";
     static final String PROP_REVOCATION_URI = "https.client.revocation.url";
+    static final String PROP_REVOCATION_SOFT_FAIL = "https.client.revocation.soft.fail";
 
     private static final Property<Boolean> HTTP_ENABLED = new Property<>(PROP_HTTP_ENABLED, true);
     private static final Property<Integer> HTTP_PORT = new Property<>(PROP_HTTP_PORT, 80);
@@ -35,8 +36,9 @@ public class HttpServiceOptions {
     private static final Property<Integer> HTTPS_PORT = new Property<>(PROP_HTTPS_PORT, 443);
     private static final Property<String> HTTPS_KEYSTORE_PASSWORD = new Property<>(PROP_HTTPS_KEYSTORE_PASSWORD,
             DEFAULT_HTTPS_KEYSTORE_PASSWORD);
-    private static final Property<Boolean> REVOCATION_ENABLED = new Property<>(PROP_REVOCATION_ENABLED, true);
+    private static final Property<Boolean> REVOCATION_ENABLED = new Property<>(PROP_REVOCATION_ENABLED, false);
     private static final Property<String> REVOCATION_URI = new Property<>(PROP_REVOCATION_URI, "[]");
+    private static final Property<Boolean> REVOCATION_SOFT_FAIL = new Property<>(PROP_REVOCATION_SOFT_FAIL, false);
 
     private final boolean httpEnabled;
     private final int httpPort;
@@ -46,6 +48,7 @@ public class HttpServiceOptions {
     private final char[] httpsKeystorePasswordArray;
     private final boolean isRevocationEnabled;
     private final String certificateRevocationUri;
+    private final boolean isRevocationSoftFailEnabled;
 
     public HttpServiceOptions(final Map<String, Object> properties, final String kuraHome) {
         Property<String> httpsKeystorePathProp = new Property<>(PROP_HTTPS_KEYSTORE_PATH,
@@ -59,6 +62,7 @@ public class HttpServiceOptions {
         this.httpsKeystorePasswordArray = HTTPS_KEYSTORE_PASSWORD.get(properties).toCharArray();
         this.isRevocationEnabled = REVOCATION_ENABLED.get(properties);
         this.certificateRevocationUri = REVOCATION_URI.get(properties);
+        this.isRevocationSoftFailEnabled = REVOCATION_SOFT_FAIL.get(properties);
     }
 
     public boolean isHttpEnabled() {
@@ -91,6 +95,10 @@ public class HttpServiceOptions {
 
     public String getRevocationURI() {
         return this.certificateRevocationUri;
+    }
+    
+    public boolean isRevocationSoftFailEnabled() {
+        return this.isRevocationSoftFailEnabled;
     }
 
     @Override

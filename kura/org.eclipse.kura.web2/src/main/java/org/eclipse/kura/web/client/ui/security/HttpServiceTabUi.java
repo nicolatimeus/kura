@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2019 Eurotech and/or its affiliates
+ * Copyright (c) 2019 Eurotech and/or its affiliates
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -9,7 +9,7 @@
  * Contributors:
  *     Eurotech
  *******************************************************************************/
-package org.eclipse.kura.web.client.ui.settings;
+package org.eclipse.kura.web.client.ui.security;
 
 import java.util.Iterator;
 import java.util.List;
@@ -45,11 +45,11 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 
-public class SslTabUi extends AbstractServicesUi {
+public class HttpServiceTabUi extends AbstractServicesUi {
 
-    private static final SslTabUiUiBinder uiBinder = GWT.create(SslTabUiUiBinder.class);
+    private static final HttpServiceTabUiUiBinder uiBinder = GWT.create(HttpServiceTabUiUiBinder.class);
 
-    interface SslTabUiUiBinder extends UiBinder<Widget, SslTabUi> {
+    interface HttpServiceTabUiUiBinder extends UiBinder<Widget, HttpServiceTabUi> {
     }
 
     private static final Messages MSGS = GWT.create(Messages.class);
@@ -79,7 +79,7 @@ public class SslTabUi extends AbstractServicesUi {
     @UiField
     Text incompleteFieldsText;
 
-    public SslTabUi() {
+    public HttpServiceTabUi() {
         initWidget(uiBinder.createAndBindUi(this));
         this.initialized = false;
         
@@ -101,7 +101,7 @@ public class SslTabUi extends AbstractServicesUi {
 
             @Override
             public void onSuccess(GwtXSRFToken token) {
-                gwtComponentService.findFilteredComponentConfiguration(token, "org.eclipse.kura.ssl.SslManagerService",
+                gwtComponentService.findFilteredComponentConfiguration(token, "org.eclipse.kura.http.server.manager.HttpService",
                         new AsyncCallback<List<GwtConfigComponent>>() {
 
                             @Override
@@ -164,7 +164,7 @@ public class SslTabUi extends AbstractServicesUi {
                 Button no = new Button();
                 no.setText(MSGS.noButton());
                 no.addStyleName("fa fa-times");
-                no.addClickHandler(event -> SslTabUi.this.modal.hide());
+                no.addClickHandler(event -> HttpServiceTabUi.this.modal.hide());
 
                 group.add(no);
                 Button yes = new Button();
@@ -179,7 +179,7 @@ public class SslTabUi extends AbstractServicesUi {
                         FailureHandler.handle(ex);
                         return;
                     }
-                    SslTabUi.this.gwtXSRFService.generateSecurityToken(new AsyncCallback<GwtXSRFToken>() {
+                    HttpServiceTabUi.this.gwtXSRFService.generateSecurityToken(new AsyncCallback<GwtXSRFToken>() {
 
                         @Override
                         public void onFailure(Throwable ex) {
@@ -189,8 +189,8 @@ public class SslTabUi extends AbstractServicesUi {
 
                         @Override
                         public void onSuccess(GwtXSRFToken token) {
-                            SslTabUi.this.gwtComponentService.updateComponentConfiguration(token,
-                                    SslTabUi.this.configurableComponent, new AsyncCallback<Void>() {
+                            HttpServiceTabUi.this.gwtComponentService.updateComponentConfiguration(token,
+                                    HttpServiceTabUi.this.configurableComponent, new AsyncCallback<Void>() {
 
                                         @Override
                                         public void onFailure(Throwable caught) {
@@ -205,12 +205,12 @@ public class SslTabUi extends AbstractServicesUi {
 
                                         @Override
                                         public void onSuccess(Void result) {
-                                            SslTabUi.this.modal.hide();
+                                            HttpServiceTabUi.this.modal.hide();
                                             logger.info(MSGS.info() + ": " + MSGS.deviceConfigApplied());
-                                            SslTabUi.this.apply.setEnabled(false);
-                                            SslTabUi.this.reset.setEnabled(false);
+                                            HttpServiceTabUi.this.apply.setEnabled(false);
+                                            HttpServiceTabUi.this.reset.setEnabled(false);
                                             setDirty(false);
-                                            SslTabUi.this.originalConfig = SslTabUi.this.configurableComponent;
+                                            HttpServiceTabUi.this.originalConfig = HttpServiceTabUi.this.configurableComponent;
                                             EntryClassUi.hideWaitModal();
                                         }
                                     });
@@ -249,17 +249,17 @@ public class SslTabUi extends AbstractServicesUi {
             Button no = new Button();
             no.setText(MSGS.noButton());
             no.addStyleName("fa fa-times");
-            no.addClickHandler(event -> SslTabUi.this.modal.hide());
+            no.addClickHandler(event -> HttpServiceTabUi.this.modal.hide());
             group.add(no);
             Button yes = new Button();
             yes.setText(MSGS.yesButton());
             yes.addStyleName("fa fa-check");
             yes.addClickHandler(event -> {
-                SslTabUi.this.modal.hide();
-                restoreConfiguration(SslTabUi.this.originalConfig);
+                HttpServiceTabUi.this.modal.hide();
+                restoreConfiguration(HttpServiceTabUi.this.originalConfig);
                 renderForm();
-                SslTabUi.this.apply.setEnabled(false);
-                SslTabUi.this.reset.setEnabled(false);
+                HttpServiceTabUi.this.apply.setEnabled(false);
+                HttpServiceTabUi.this.reset.setEnabled(false);
                 setDirty(false);
             });
             group.add(yes);

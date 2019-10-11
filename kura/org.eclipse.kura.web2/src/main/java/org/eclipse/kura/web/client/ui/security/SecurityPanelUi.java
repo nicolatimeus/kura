@@ -50,13 +50,17 @@ public class SecurityPanelUi extends Composite {
     @UiField
     CertificateListTabUi certificateListPanel;
     @UiField
+    HttpServiceTabUi httpServicePanel;
+    @UiField
     SecurityTabUi securityPanel;
 
     @UiField
     TabListItem certificateList;
     @UiField
+    TabListItem httpService;
+    @UiField
     TabListItem security;
-    
+
     @UiField
     TabContent tabContent;
     @UiField
@@ -88,6 +92,7 @@ public class SecurityPanelUi extends Composite {
         this.gwtSecurityService.isSecurityServiceAvailable(callback);
 
         this.certificateList.addClickHandler(new Tab.RefreshHandler(this.certificateListPanel));
+        this.httpService.addClickHandler(event -> this.httpServicePanel.load());
         this.security.addClickHandler(new Tab.RefreshHandler(this.securityPanel));
     }
 
@@ -104,8 +109,9 @@ public class SecurityPanelUi extends Composite {
     public boolean isDirty() {
         boolean certListDirty = this.certificateListPanel.isDirty();
         boolean securityDirty = this.securityPanel.isDirty();
+        boolean httpServiceDirty = this.httpServicePanel.isDirty();
 
-        return certListDirty  || securityDirty;
+        return certListDirty || securityDirty || httpServiceDirty;
     }
 
     public void addTab(final String name, final WidgetFactory widgetFactory) {
@@ -128,5 +134,6 @@ public class SecurityPanelUi extends Composite {
     public void setDirty(boolean b) {
         this.certificateListPanel.setDirty(b);
         this.securityPanel.setDirty(b);
+        this.httpServicePanel.setDirty(b);
     }
 }

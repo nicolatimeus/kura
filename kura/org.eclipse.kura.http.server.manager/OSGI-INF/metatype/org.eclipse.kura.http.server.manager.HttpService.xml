@@ -69,7 +69,7 @@
             description="Specifies the password for accessing and verifying the configured keystore."/>
         
         <AD id="https.revocation.check.enabled"  
-            name="https.revocation.check.enabled"
+            name="Https Revocation Check Enabled"
             type="Boolean"
             cardinality="0" 
             required="false"
@@ -77,12 +77,20 @@
             description="Specifies whether to check revocation status of client certificats."/>
         
         <AD id="https.client.revocation.url"  
-            name="https.client.revocation.url"
+            name="Https Client Revocation URL"
             type="String"
             cardinality="0" 
             required="false"
             default="" 
             description="Specifies the URI for OCSP responders."/>
+            
+        <AD id="https.client.revocation.soft.fail"  
+            name="Https Revocation Soft-fail Enabled"
+            type="Boolean"
+            cardinality="0" 
+            required="false"
+            default="false" 
+            description="Specifies whether the revocation soft fail is enabled or not. If it is enabled and the gateway is not able to connect to Internet, the certificate of the user that is trying to log will be rejected."/>
     </OCD>
     
     <Designate pid="org.eclipse.kura.http.server.manager.HttpService">
