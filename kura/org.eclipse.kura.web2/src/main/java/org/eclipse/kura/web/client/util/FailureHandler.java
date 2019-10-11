@@ -74,6 +74,7 @@ public class FailureHandler {
             }
             stackTraceContainer.setVisible(true);
         }
+        popup.setHideOtherModals(true);
         popup.show();
     }
 

@@ -26,6 +26,7 @@ import org.eclipse.kura.web.shared.service.GwtCertificatesServiceAsync;
 import org.eclipse.kura.web.shared.service.GwtSecurityTokenService;
 import org.eclipse.kura.web.shared.service.GwtSecurityTokenServiceAsync;
 import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.ListBox;
 import org.gwtbootstrap3.client.ui.Modal;
 import org.gwtbootstrap3.client.ui.ModalBody;
 import org.gwtbootstrap3.client.ui.ModalFooter;
@@ -60,7 +61,18 @@ public class CertificateListTabUi extends Composite implements Tab {
     @UiField
     Button refresh;
     @UiField
+    Button add;
+    @UiField
     Button uninstall;
+
+    @UiField
+    Modal certAddModal;
+    @UiField
+    ModalBody certAddModalBody;
+    @UiField
+    Button nextStepButton;
+    @UiField
+    Button closeModalButton;
 
     @UiField
     CellTable<GwtCertificate> certificatesGrid = new CellTable<>();
@@ -187,6 +199,12 @@ public class CertificateListTabUi extends Composite implements Tab {
         this.refresh.setText(MSGS.refresh());
         this.refresh.addClickHandler(event -> refresh());
 
+        this.add.setText(MSGS.addButton());
+        this.add.addClickHandler(event -> {
+            initCertificateTypeSelection();
+            this.certAddModal.show();
+        });
+
         this.uninstall.setText(MSGS.packageDeleteButton());
         this.uninstall.addClickHandler(event -> {
             this.selected = this.selectionModel.getSelectedObject();
@@ -208,6 +226,51 @@ public class CertificateListTabUi extends Composite implements Tab {
                 modal.show();
             }
         });
+    }
+
+    private void initCertificateTypeSelection() {
+        this.certAddModal.setTitle("Select the Type of certificate to add");
+        ListBox certType = new ListBox();
+        for (CertType c : CertType.values()) {
+            certType.addItem(c.value());
+        }
+
+        this.certAddModalBody.clear();
+        this.certAddModalBody.add(certType);
+
+        this.nextStepButton.setVisible(true);
+        this.nextStepButton.setText(MSGS.okButton());
+        this.nextStepButton.addClickHandler(event -> {
+            CertType selectedCertType = CertType.fromValue(certType.getSelectedValue());
+
+            initCertificateAddModal(selectedCertType);
+        });
+
+    }
+
+    private void initCertificateAddModal(CertType selectedCertType) {
+        this.certAddModal.setTitle("Add Certificate");
+        this.certAddModalBody.clear();
+
+        if (selectedCertType == CertType.APPLICATION_CERT) {
+            ApplicationCertsTabUi appCertPanel = new ApplicationCertsTabUi();
+            this.certAddModalBody.add(appCertPanel);
+        } else if (selectedCertType == CertType.DEVICE_SSL_CERT) {
+            DeviceCertsTabUi deviceCertsTabUi = new DeviceCertsTabUi();
+            this.certAddModalBody.add(deviceCertsTabUi);
+        } else if (selectedCertType == CertType.SERVER_SSL_CERT) {
+            ServerCertsTabUi serverCertsTabUi = new ServerCertsTabUi();
+            this.certAddModalBody.add(serverCertsTabUi);
+        } else if (selectedCertType == CertType.HTTPS_CLIENT_CERT) {
+            HttpsUserCertsTabUi httpsUserCertsTabUi = new HttpsUserCertsTabUi();
+            this.certAddModalBody.add(httpsUserCertsTabUi);
+        } else if (selectedCertType == CertType.HTTPS_SERVER_CERT) {
+            HttpsServerCertsTabUi httpsServerCertsTabUi = new HttpsServerCertsTabUi();
+            this.certAddModalBody.add(httpsServerCertsTabUi);
+        }
+
+        this.nextStepButton.setVisible(false);
+
     }
 
     private void uninstall(final GwtCertificate selected) {
@@ -241,5 +304,32 @@ public class CertificateListTabUi extends Composite implements Tab {
             }
 
         });
+    }
+
+    private enum CertType {
+        SERVER_SSL_CERT("Server SSL Certificate"),
+        DEVICE_SSL_CERT("Device SSL Certificate"),
+        APPLICATION_CERT("Application Certificate"),
+        HTTPS_SERVER_CERT("Https Server Certificate"),
+        HTTPS_CLIENT_CERT("Https Client Certificate");
+
+        private String value;
+
+        private CertType(String v) {
+            this.value = v;
+        }
+
+        public String value() {
+            return this.value;
+        }
+
+        public static CertType fromValue(String v) {
+            for (CertType c : CertType.values()) {
+                if (c.value().equals(v)) {
+                    return c;
+                }
+            }
+            throw new IllegalArgumentException(v);
+        }
     }
 }

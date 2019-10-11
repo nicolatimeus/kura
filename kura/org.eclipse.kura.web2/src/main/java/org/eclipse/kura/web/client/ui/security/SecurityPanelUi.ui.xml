@@ -44,37 +44,12 @@
                 <b:NavTabs ui:field="navTabs">
                 	<b:TabListItem dataTarget="#certificateListPanel" text="Certificates List"
                         ui:field="certificateList" active="true" />
-                	<b:TabListItem dataTarget="#serverCertPanel" text="Server SSL Certificate"
-                        ui:field="serverCert" />
-                    <b:TabListItem dataTarget="#deviceCertPanel" text="Device SSL Certificate"
-                        ui:field="deviceCert" />
-                    <b:TabListItem dataTarget="#appCertPanel" text="Application Certificate"
-                        ui:field="appCert" visible="false"/>
-                    <b:TabListItem dataTarget="#httpsServerCertPanel" text="Https Server Certificate"
-                        ui:field="httpsServerCert" />
-                    <b:TabListItem dataTarget="#httpsUserCertPanel" text="Https Client Certificate"
-                        ui:field="httpsUserCert" />
                     <b:TabListItem dataTarget="#securityPanel" text="Security Policies"
                         ui:field="security" visible="false"/>
                 </b:NavTabs>
                 <b:TabContent ui:field="tabContent">
                 	<b:TabPane b:id="certificateListPanel" active="true">
                         <security:CertificateListTabUi ui:field="certificateListPanel"></security:CertificateListTabUi>
-                    </b:TabPane>
-                	<b:TabPane b:id="serverCertPanel">
-                        <security:ServerCertsTabUi ui:field="serverCertPanel"></security:ServerCertsTabUi>
-                    </b:TabPane>
-                    <b:TabPane b:id="deviceCertPanel">
-                        <security:DeviceCertsTabUi ui:field="deviceCertPanel"></security:DeviceCertsTabUi>
-                    </b:TabPane>
-                    <b:TabPane b:id="appCertPanel">
-                        <security:ApplicationCertsTabUi ui:field="appCertPanel"></security:ApplicationCertsTabUi>
-                    </b:TabPane>
-                    <b:TabPane b:id="httpsServerCertPanel">
-                        <security:HttpsServerCertsTabUi ui:field="httpsServerCertPanel"></security:HttpsServerCertsTabUi>
-                    </b:TabPane>
-                    <b:TabPane b:id="httpsUserCertPanel">
-                        <security:HttpsUserCertsTabUi ui:field="httpsUserCertPanel"></security:HttpsUserCertsTabUi>
                     </b:TabPane>
                     <b:TabPane b:id="securityPanel">
                         <security:SecurityTabUi ui:field="securityPanel"></security:SecurityTabUi>
