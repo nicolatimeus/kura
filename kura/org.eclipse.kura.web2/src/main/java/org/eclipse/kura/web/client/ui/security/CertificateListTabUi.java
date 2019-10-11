@@ -229,7 +229,7 @@ public class CertificateListTabUi extends Composite implements Tab {
     }
 
     private void initCertificateTypeSelection() {
-        this.certAddModal.setTitle("Select the Type of certificate to add");
+        this.certAddModal.setTitle(MSGS.securityCertificateTypeLabel());
         ListBox certType = new ListBox();
         for (CertType c : CertType.values()) {
             certType.addItem(c.value());
@@ -307,11 +307,11 @@ public class CertificateListTabUi extends Composite implements Tab {
     }
 
     private enum CertType {
-        SERVER_SSL_CERT("Server SSL Certificate"),
-        DEVICE_SSL_CERT("Device SSL Certificate"),
-        APPLICATION_CERT("Application Certificate"),
-        HTTPS_SERVER_CERT("Https Server Certificate"),
-        HTTPS_CLIENT_CERT("Https Client Certificate");
+        SERVER_SSL_CERT(MSGS.settingsAddCertificates()),
+        DEVICE_SSL_CERT(MSGS.settingsAddMAuthCertificates()),
+        APPLICATION_CERT(MSGS.settingsAddBundleCerts()),
+        HTTPS_SERVER_CERT(MSGS.securityHttpsServerLabel()),
+        HTTPS_CLIENT_CERT(MSGS.securityHttpsClientLabel());
 
         private String value;
 
