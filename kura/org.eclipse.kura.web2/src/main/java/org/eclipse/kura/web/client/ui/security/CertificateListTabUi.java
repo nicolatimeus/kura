@@ -238,8 +238,9 @@ public class CertificateListTabUi extends Composite implements Tab {
         this.certAddModalBody.clear();
         this.certAddModalBody.add(certType);
 
+        this.closeModalButton.setText(MSGS.closeButton());
         this.nextStepButton.setVisible(true);
-        this.nextStepButton.setText(MSGS.okButton());
+        this.nextStepButton.setText(MSGS.submitButton());
         this.nextStepButton.addClickHandler(event -> {
             CertType selectedCertType = CertType.fromValue(certType.getSelectedValue());
 
