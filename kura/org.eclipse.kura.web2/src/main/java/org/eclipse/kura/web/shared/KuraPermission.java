@@ -1,5 +1,10 @@
 package org.eclipse.kura.web.shared;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 public final class KuraPermission {
 
     public static final String STATUS = "kura.status";
@@ -11,6 +16,10 @@ public final class KuraPermission {
     public static final String SETTINGS_ADMIN = "kura.settings.admin";
     public static final String USER_ADMIN = "kura.user.admin";
     public static final String SECURITY_ADMIN = "kura.security.admin";
+
+    public static final Set<String> DEFAULT_PERMISSIONS = Collections
+            .unmodifiableSet(new HashSet<>(Arrays.asList(STATUS, NETWORK_ADMIN, PACKAGES_ADMIN, DEVICE,
+                    CLOUD_CONNECTION_ADMIN, SERVICES_ADMIN, SETTINGS_ADMIN, USER_ADMIN, SECURITY_ADMIN)));
 
     private KuraPermission() {
     }

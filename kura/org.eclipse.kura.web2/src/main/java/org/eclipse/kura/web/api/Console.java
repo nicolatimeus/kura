@@ -41,4 +41,8 @@ public interface Console {
     public String setAuthenticated(final HttpSession session, final String user);
 
     public void checkXSRFToken(final HttpSession session, final String token) throws KuraException;
+
+    public void registerPermission(final String permission);
+
+    public void unregisterPermission(final String permission);
 }

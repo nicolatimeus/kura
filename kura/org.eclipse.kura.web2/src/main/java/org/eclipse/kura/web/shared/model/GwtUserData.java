@@ -6,6 +6,7 @@ import java.util.Set;
 
 public class GwtUserData extends GwtBaseModel implements Serializable {
 
+    @SuppressWarnings("unused")
     private HashSet<String> unused;
 
     /**
@@ -44,6 +45,40 @@ public class GwtUserData extends GwtBaseModel implements Serializable {
 
     public boolean isAdmin() {
         return get("isAdmin");
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (isAdmin() ? 1231 : 1237);
+        result = prime * result + ((getPermissions() == null) ? 0 : getPermissions().hashCode());
+        result = prime * result + ((getUserName() == null) ? 0 : getUserName().hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        GwtUserData other = (GwtUserData) obj;
+        if (isAdmin() != other.isAdmin())
+            return false;
+        if (getPermissions() == null) {
+            if (other.getPermissions() != null)
+                return false;
+        } else if (!getPermissions().equals(other.getPermissions()))
+            return false;
+        if (getUserName() == null) {
+            if (other.getUserName() != null)
+                return false;
+        } else if (!getUserName().equals(other.getUserName()))
+            return false;
+        return true;
     }
 
 }

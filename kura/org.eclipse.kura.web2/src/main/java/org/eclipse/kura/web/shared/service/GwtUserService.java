@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.kura.web.shared.service;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.kura.web.server.RequiredPermissions;
@@ -22,21 +23,20 @@ import org.eclipse.kura.web.shared.model.GwtXSRFToken;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
-@RemoteServiceRelativePath("assetservices")
+@RemoteServiceRelativePath("users")
 @RequiredPermissions(KuraPermission.USER_ADMIN)
 public interface GwtUserService extends RemoteService {
 
-    public void createUser(final GwtXSRFToken token, final String userName, final String password)
+    public void createUser(GwtXSRFToken token, final String userName) throws GwtKuraException;
+
+    public void deleteUser(GwtXSRFToken token, final String userName) throws GwtKuraException;
+
+    public void setUserPassword(GwtXSRFToken token, final String userName, final String password)
             throws GwtKuraException;
 
-    public void deleteUser(final GwtXSRFToken token, final String userName) throws GwtKuraException;
+    public Set<String> getDefinedPermissions(GwtXSRFToken token) throws GwtKuraException;
 
-    public void setPermissions(final GwtXSRFToken token, final String user, final Set<String> permissions)
-            throws GwtKuraException;
+    public Set<GwtUserData> getUserData(GwtXSRFToken token) throws GwtKuraException;
 
-    public Set<String> getExistingPermissions(final GwtXSRFToken token) throws GwtKuraException;
-
-    public Set<GwtUserData> getUserData(final GwtXSRFToken token) throws GwtKuraException;
-
-    public void setUserData(final Set<GwtUserData> userData) throws GwtKuraException;
+    public void setUserData(GwtXSRFToken token, Map<String, GwtUserData> userData) throws GwtKuraException;
 }

@@ -20,7 +20,7 @@ import org.eclipse.kura.web.Console;
 import org.eclipse.kura.web.session.Attributes;
 import org.eclipse.kura.web.shared.GwtKuraException;
 import org.eclipse.kura.web.shared.model.GwtUserData;
-import org.eclipse.kura.web.shared.model.GwtUserInfo;
+import org.eclipse.kura.web.shared.model.GwtPasswordStrengthRequirements;
 import org.eclipse.kura.web.shared.model.GwtXSRFToken;
 import org.eclipse.kura.web.shared.service.GwtSessionService;
 import org.slf4j.Logger;
@@ -64,10 +64,10 @@ public class GwtSessionServiceImpl extends OsgiRemoteServiceServlet implements G
     }
 
     @Override
-    public GwtUserInfo getUserInfo(final GwtXSRFToken xsrfToken) throws GwtKuraException {
+    public GwtPasswordStrengthRequirements getUserInfo(final GwtXSRFToken xsrfToken) throws GwtKuraException {
         checkXSRFToken(xsrfToken);
 
-        final GwtUserInfo userInfo = new GwtUserInfo(Console.getConsoleOptions().getUserOptions());
+        final GwtPasswordStrengthRequirements userInfo = new GwtPasswordStrengthRequirements(Console.getConsoleOptions().getUserOptions());
 
         final HttpSession session = getThreadLocalRequest().getSession(false);
 

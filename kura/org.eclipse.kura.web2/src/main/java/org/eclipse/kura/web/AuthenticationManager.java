@@ -33,7 +33,8 @@ public class AuthenticationManager {
     public boolean authenticate(String username, String password) throws KuraException {
 
         try {
-            final Optional<String> registeredPassword = Console.getConsoleOptions().getUserPassword(username);
+            final Optional<String> registeredPassword = Console.getConsoleOptions().getUserConfiguration()
+                    .getUserPassword(username);
 
             if (!registeredPassword.isPresent()) {
                 throw new IllegalArgumentException();

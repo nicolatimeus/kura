@@ -28,7 +28,7 @@ import org.eclipse.kura.web.shared.GwtSafeHtmlUtils;
 import org.eclipse.kura.web.shared.model.GwtNetIfStatus;
 import org.eclipse.kura.web.shared.model.GwtNetInterfaceConfig;
 import org.eclipse.kura.web.shared.model.GwtSession;
-import org.eclipse.kura.web.shared.model.GwtUserInfo;
+import org.eclipse.kura.web.shared.model.GwtPasswordStrengthRequirements;
 import org.eclipse.kura.web.shared.model.GwtWifiBgscanModule;
 import org.eclipse.kura.web.shared.model.GwtWifiChannelModel;
 import org.eclipse.kura.web.shared.model.GwtWifiCiphers;
@@ -1350,7 +1350,7 @@ public class TabWirelessUi extends Composite implements NetworkTab {
 
     private void setPasswordValidation() {
 
-        final GwtUserInfo configUserOptions = EntryClassUi.getUserOptions();
+        final GwtPasswordStrengthRequirements configUserOptions = EntryClassUi.getUserOptions();
 
         if (this.getWirelessMode() != GwtWifiWirelessMode.netWifiWirelessModeAccessPoint) {
             configUserOptions.allowAnyPassword();

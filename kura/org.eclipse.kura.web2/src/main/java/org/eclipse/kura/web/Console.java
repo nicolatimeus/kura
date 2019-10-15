@@ -47,6 +47,7 @@ import org.eclipse.kura.web.server.GwtSecurityTokenServiceImpl;
 import org.eclipse.kura.web.server.GwtSessionServiceImpl;
 import org.eclipse.kura.web.server.GwtSnapshotServiceImpl;
 import org.eclipse.kura.web.server.GwtStatusServiceImpl;
+import org.eclipse.kura.web.server.GwtUserServiceImpl;
 import org.eclipse.kura.web.server.GwtWireGraphServiceImpl;
 import org.eclipse.kura.web.server.OsgiRemoteServiceServlet;
 import org.eclipse.kura.web.server.servlet.ChannelServlet;
@@ -67,6 +68,7 @@ import org.eclipse.kura.web.session.RoutingSecurityHandler;
 import org.eclipse.kura.web.session.SecurityHandler;
 import org.eclipse.kura.web.session.SessionAutorizationSecurityHandler;
 import org.eclipse.kura.web.session.SessionExpirationSecurityHandler;
+import org.eclipse.kura.web.shared.KuraPermission;
 import org.eclipse.kura.web.shared.model.GwtUserData;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
@@ -118,6 +120,7 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
     private final Set<ServletRegistration> loginServlets = new CopyOnWriteArraySet<>();
     private final Set<ClientExtensionBundle> consoleExtensions = new CopyOnWriteArraySet<>();
     private final Set<ClientExtensionBundle> loginExtensions = new CopyOnWriteArraySet<>();
+    private final Set<String> extensionPermissions = new CopyOnWriteArraySet<>();
 
     private static Console instance;
 
@@ -210,23 +213,34 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
             return;
         }
 
-        unregisterServlet();
         doUpdate(properties);
     }
 
     private void doUpdate(Map<String, Object> properties) {
-        try {
-            ConsoleOptions options = new ConsoleOptions(properties, this.cryptoService);
-            Console.setConsoleOptions(options);
+        ConsoleOptions newOptions = null;
 
-            setAppRoot(options.getAppRoot());
-            setSessionMaxInactiveInterval(options.getSessionMaxInactivityInterval());
+        try {
+            newOptions = new ConsoleOptions(properties, this.cryptoService);
+
+            if (newOptions.equals(consoleOptions)) {
+                logger.info("no need to update");
+                return;
+            }
+
+            setAppRoot(newOptions.getAppRoot());
+            setSessionMaxInactiveInterval(newOptions.getSessionMaxInactivityInterval());
         } catch (final Exception e) {
             logger.warn("failed to load console options", e);
+            return;
         }
 
         try {
+            if (consoleOptions != null) {
+                unregisterServlet();
+            }
+            Console.setConsoleOptions(newOptions);
             initHTTPService();
+
         } catch (NamespaceException | ServletException e) {
             logger.warn("Error Registering Web Resources", e);
         }
@@ -275,6 +289,7 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
         this.httpService.unregister(DENALI_MODULE_PATH + "/wiresSnapshot");
         this.httpService.unregister(DENALI_MODULE_PATH + "/assetservices");
         this.httpService.unregister(DENALI_MODULE_PATH + "/extension");
+        this.httpService.unregister(DENALI_MODULE_PATH + "/users");
         this.httpService.unregister(LOGIN_MODULE_PATH + "/extension");
         this.httpService.unregister(ADMIN_ROOT + "/sse");
         this.eventService.stop();
@@ -311,6 +326,15 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
 
     public String getApplicationRoot() {
         return this.appRoot;
+    }
+
+    public Set<String> getRegisteredPermissions() {
+        final HashSet<String> permissions = new HashSet<>();
+
+        permissions.addAll(KuraPermission.DEFAULT_PERMISSIONS);
+        permissions.addAll(extensionPermissions);
+
+        return permissions;
     }
 
     public HttpSession createSession(final HttpServletRequest request) {
@@ -417,6 +441,7 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
                 sessionContext);
         this.httpService.registerServlet(DENALI_MODULE_PATH + "/assetservices", new GwtAssetServiceImpl(), null,
                 sessionContext);
+        this.httpService.registerServlet(DENALI_MODULE_PATH + "/users", new GwtUserServiceImpl(), null, sessionContext);
         this.httpService.registerServlet(ADMIN_ROOT + "/sse", new WiresBlinkServlet(), null, sessionContext);
         this.httpService.registerServlet(DENALI_MODULE_PATH + EVENT_PATH, this.eventService, null, sessionContext);
 
@@ -525,7 +550,7 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
 
         session.setAttribute(Attributes.AUTORIZED_USER.getValue(), user);
 
-        final GwtUserData userData = consoleOptions.getUserDataOrDefault(user);
+        final GwtUserData userData = consoleOptions.getUserConfiguration().getUserDataOrDefault(user);
 
         session.setAttribute(Attributes.PERMISSIONS.getValue(), userData.getPermissions());
         session.setAttribute(Attributes.IS_ADMIN.getValue(), userData.isAdmin());
@@ -543,6 +568,16 @@ public class Console implements ConfigurableComponent, org.eclipse.kura.web.api.
     @Override
     public Optional<String> getUsername(HttpSession session) {
         return Optional.ofNullable(session.getAttribute(Attributes.AUTORIZED_USER.getValue())).map(o -> (String) o);
+    }
+
+    @Override
+    public void registerPermission(String permission) {
+        extensionPermissions.add(permission);
+    }
+
+    @Override
+    public void unregisterPermission(String permission) {
+        extensionPermissions.remove(permission);
     }
 
 }

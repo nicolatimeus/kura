@@ -111,8 +111,8 @@
             description="If set to true, new passwords will be accepted only if containing both uppercase and lowercase alphanumeric characters.">
         </AD>
         
-        <AD id="user.data"
-            name="User data"
+        <AD id="user.configuration"
+            name="User configuration"
             type="String"
             cardinality="0"
             required="true"

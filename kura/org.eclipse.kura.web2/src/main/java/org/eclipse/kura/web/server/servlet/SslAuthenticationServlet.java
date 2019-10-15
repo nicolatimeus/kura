@@ -1,21 +1,8 @@
 package org.eclipse.kura.web.server.servlet;
 
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertPath;
-import java.security.cert.CertPathValidator;
-import java.security.cert.CertPathValidatorException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.PKIXCertPathValidatorResult;
-import java.security.cert.PKIXParameters;
-import java.security.cert.TrustAnchor;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
@@ -57,28 +44,25 @@ public class SslAuthenticationServlet extends HttpServlet {
 
         try {
 
-            @SuppressWarnings("unchecked")
-            final Set<TrustAnchor> trustAnchors = (Set<TrustAnchor>) req
-                    .getAttribute("org.eclipse.kura.web.trust.anchors");
-
             final X509Certificate[] clientCertificates = (X509Certificate[]) req
                     .getAttribute("javax.servlet.request.X509Certificate");
 
-            final X509Certificate trustAnchor = getTrustAnchor(trustAnchors, Arrays.asList(clientCertificates))
-                    .getTrustedCert();
+            if (clientCertificates == null || clientCertificates.length == 0) {
+                throw new IllegalArgumentException("Certificate chain is empty");
+            }
 
-            final LdapName ldapName = new LdapName(trustAnchor.getSubjectX500Principal().getName());
+            final LdapName ldapName = new LdapName(clientCertificates[0].getSubjectX500Principal().getName());
 
             final Optional<Rdn> commonNameRdn = ldapName.getRdns().stream()
                     .filter(r -> "cn".equalsIgnoreCase(r.getType())).findAny();
 
             if (!commonNameRdn.isPresent()) {
-                throw new IllegalArgumentException("Root certificate common name is not present");
+                throw new IllegalArgumentException("Certificate common name is not present");
             }
 
             final String commonName = (String) commonNameRdn.get().getValue();
 
-            if (Console.getConsoleOptions().getUserData(commonName).isPresent()) {
+            if (Console.getConsoleOptions().getUserConfiguration().getUserData(commonName).isPresent()) {
                 console.setAuthenticated(session, commonName);
                 sendRedirect(resp, redirectPath);
             } else {
@@ -90,18 +74,6 @@ public class SslAuthenticationServlet extends HttpServlet {
             sendUnauthorized(resp);
         }
 
-    }
-
-    private TrustAnchor getTrustAnchor(final Set<TrustAnchor> trustAnchors,
-            final List<X509Certificate> clientCertificates) throws CertificateException, NoSuchAlgorithmException,
-            InvalidAlgorithmParameterException, CertPathValidatorException {
-
-        final CertPath path = CertificateFactory.getInstance("X.509").generateCertPath(clientCertificates);
-        final CertPathValidator validator = CertPathValidator.getInstance("PKIX");
-        final PKIXParameters params = new PKIXParameters(trustAnchors);
-        params.setRevocationEnabled(false);
-        final PKIXCertPathValidatorResult result = (PKIXCertPathValidatorResult) validator.validate(path, params);
-        return result.getTrustAnchor();
     }
 
     private void sendUnauthorized(final HttpServletResponse resp) {

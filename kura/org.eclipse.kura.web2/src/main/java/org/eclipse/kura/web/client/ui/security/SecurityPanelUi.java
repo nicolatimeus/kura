@@ -48,12 +48,16 @@ public class SecurityPanelUi extends Composite {
     GwtSession session;
 
     @UiField
+    UsersTabUi usersPanel;
+    @UiField
     CertificateListTabUi certificateListPanel;
     @UiField
     HttpServiceTabUi httpServicePanel;
     @UiField
     SecurityTabUi securityPanel;
 
+    @UiField
+    TabListItem usersConfig;
     @UiField
     TabListItem certificateList;
     @UiField
@@ -91,15 +95,14 @@ public class SecurityPanelUi extends Composite {
         };
         this.gwtSecurityService.isSecurityServiceAvailable(callback);
 
+        this.usersConfig.addClickHandler(new Tab.RefreshHandler(this.usersPanel));
         this.certificateList.addClickHandler(new Tab.RefreshHandler(this.certificateListPanel));
         this.httpService.addClickHandler(event -> this.httpServicePanel.load());
         this.security.addClickHandler(new Tab.RefreshHandler(this.securityPanel));
     }
 
     public void load() {
-        if (!this.certificateListPanel.isDirty()) {
-            this.certificateListPanel.refresh();
-        }
+        this.usersPanel.refresh();
     }
 
     public void setSession(GwtSession currentSession) {
@@ -107,11 +110,12 @@ public class SecurityPanelUi extends Composite {
     }
 
     public boolean isDirty() {
+        boolean usersPanelDirty = this.usersPanel.isDirty();
         boolean certListDirty = this.certificateListPanel.isDirty();
         boolean securityDirty = this.securityPanel.isDirty();
         boolean httpServiceDirty = this.httpServicePanel.isDirty();
 
-        return certListDirty || securityDirty || httpServiceDirty;
+        return usersPanelDirty || certListDirty || httpServiceDirty || securityDirty;
     }
 
     public void addTab(final String name, final WidgetFactory widgetFactory) {
@@ -132,6 +136,7 @@ public class SecurityPanelUi extends Composite {
     }
 
     public void setDirty(boolean b) {
+        this.usersPanel.setDirty(b);
         this.certificateListPanel.setDirty(b);
         this.securityPanel.setDirty(b);
         this.httpServicePanel.setDirty(b);

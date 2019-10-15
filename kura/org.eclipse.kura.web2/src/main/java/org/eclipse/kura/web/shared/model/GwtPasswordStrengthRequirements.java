@@ -11,16 +11,16 @@ package org.eclipse.kura.web.shared.model;
 
 import java.io.Serializable;
 
-public class GwtUserInfo extends GwtBaseModel implements Serializable {
+public class GwtPasswordStrengthRequirements extends GwtBaseModel implements Serializable {
 
     private GwtUserData unused;
 
     private static final long serialVersionUID = 8697261888960678066L;
 
-    public GwtUserInfo() {
+    public GwtPasswordStrengthRequirements() {
     }
 
-    public GwtUserInfo(final GwtUserInfo other) {
+    public GwtPasswordStrengthRequirements(final GwtPasswordStrengthRequirements other) {
         setPasswordMinimumLength(other.getPasswordMinimumLength());
         setPasswordRequireDigits(other.getPasswordRequireDigits());
         setPasswordRequireSpecialChars(other.getPasswordRequireSpecialChars());
@@ -72,6 +72,43 @@ public class GwtUserInfo extends GwtBaseModel implements Serializable {
         setPasswordRequireDigits(false);
         setPasswordRequireSpecialChars(false);
         setPasswordRequireBothCases(false);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + getPasswordMinimumLength();
+        result = prime * result + (getPasswordRequireBothCases() ? 1231 : 1237);
+        result = prime * result + (getPasswordRequireDigits() ? 1231 : 1237);
+        result = prime * result + (getPasswordRequireSpecialChars() ? 1231 : 1237);
+        result = prime * result + ((getUserData() == null) ? 0 : getUserData().hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        GwtPasswordStrengthRequirements other = (GwtPasswordStrengthRequirements) obj;
+        if (getPasswordMinimumLength() != other.getPasswordMinimumLength())
+            return false;
+        if (getPasswordRequireBothCases() != other.getPasswordRequireBothCases())
+            return false;
+        if (getPasswordRequireDigits() != other.getPasswordRequireDigits())
+            return false;
+        if (getPasswordRequireSpecialChars() != other.getPasswordRequireSpecialChars())
+            return false;
+        if (getUserData() == null) {
+            if (other.getUserData() != null)
+                return false;
+        } else if (!getUserData().equals(other.getUserData()))
+            return false;
+        return true;
     }
 
 }

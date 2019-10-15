@@ -13,27 +13,19 @@
  *******************************************************************************/
 package org.eclipse.kura.jetty.customizer;
 
-import java.io.FileInputStream;
 import java.net.URI;
 import java.security.KeyStore;
 import java.security.cert.CertPathValidator;
 import java.security.cert.CertStore;
-import java.security.cert.Certificate;
 import java.security.cert.CollectionCertStoreParameters;
 import java.security.cert.PKIXBuilderParameters;
 import java.security.cert.PKIXRevocationChecker;
-import java.security.cert.TrustAnchor;
 import java.security.cert.X509CertSelector;
-import java.security.cert.X509Certificate;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Dictionary;
 import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import javax.servlet.SessionCookieConfig;
 
@@ -166,13 +158,6 @@ public class KuraJettyCustomizer extends JettyCustomizer {
         final HttpConfiguration httpsConfig = new HttpConfiguration();
         httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
-        final Set<TrustAnchor> certs = loadCertificates(keyStorePath, keyStorePassword);
-
-        if (!certs.isEmpty()) {
-            httpsConfig.addCustomizer(
-                    (connector, config, req) -> req.setAttribute("org.eclipse.kura.web.trust.anchors", certs));
-        }
-
         final ServerConnector connector = new ServerConnector(server,
                 new SslConnectionFactory(sslContextFactory, "http/1.1"), new HttpConnectionFactory(httpsConfig));
         connector.setPort(4443);
@@ -210,38 +195,6 @@ public class KuraJettyCustomizer extends JettyCustomizer {
             }
 
             customizers.add(customizer);
-        }
-    }
-
-    private Set<TrustAnchor> loadCertificates(final String keyStorePath, final String keyStorePassword) {
-        try {
-            final KeyStore keyStore = KeyStore.getInstance("JKS");
-
-            try (final FileInputStream in = new FileInputStream(keyStorePath)) {
-                keyStore.load(in, keyStorePassword.toCharArray());
-            }
-
-            final Set<TrustAnchor> result = new HashSet<>();
-
-            final Enumeration<String> aliases = keyStore.aliases();
-
-            while (aliases.hasMoreElements()) {
-                final String alias = aliases.nextElement();
-
-                final Certificate cert = keyStore.getCertificate(alias);
-
-                if (!(cert instanceof X509Certificate)) {
-                    continue;
-                }
-
-                if (keyStore.isCertificateEntry(alias)) {
-                    result.add(new TrustAnchor((X509Certificate) cert, null));
-                }
-            }
-
-            return result;
-        } catch (final Exception e) {
-            return Collections.emptySet();
         }
     }
 

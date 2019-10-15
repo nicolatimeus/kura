@@ -22,12 +22,12 @@
     .important {
     	font-weight: bold;
     }
-    
+
     .spacing {
     	margin-top: 10px;
     	margin-left: -20px;
     }
-    
+
     .center-panel {
     	padding: 0px;
     }
@@ -42,15 +42,20 @@
         <b:Row>
             <b:Well size="SMALL">
                 <b:NavTabs ui:field="navTabs">
+                    <b:TabListItem dataTarget="#usersPanel" text="Users"
+                        ui:field="usersConfig" active="true" />
                 	<b:TabListItem dataTarget="#certificateListPanel" text="Certificates List"
-                        ui:field="certificateList" active="true" />
+                        ui:field="certificateList" />
                     <b:TabListItem dataTarget="#httpServicePanel" text="Http Service"
                         ui:field="httpService" />
                     <b:TabListItem dataTarget="#securityPanel" text="Security Policies"
                         ui:field="security" visible="false"/>
                 </b:NavTabs>
                 <b:TabContent ui:field="tabContent">
-                	<b:TabPane b:id="certificateListPanel" active="true">
+                	<b:TabPane b:id="usersPanel" active="true">
+                        <security:UsersTabUi ui:field="usersPanel"></security:UsersTabUi>
+                    </b:TabPane>
+                	<b:TabPane b:id="certificateListPanel">
                         <security:CertificateListTabUi ui:field="certificateListPanel"></security:CertificateListTabUi>
                     </b:TabPane>
                     <b:TabPane b:id="httpServicePanel">
@@ -63,4 +68,4 @@
             </b:Well>
         </b:Row>
     </b:Container>
-</ui:UiBinder> 
+</ui:UiBinder>

@@ -96,7 +96,7 @@ public class HttpServiceOptions {
     public String getRevocationURI() {
         return this.certificateRevocationUri;
     }
-    
+
     public boolean isRevocationSoftFailEnabled() {
         return this.isRevocationSoftFailEnabled;
     }
@@ -105,64 +105,49 @@ public class HttpServiceOptions {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result
-                + (this.certificateRevocationUri == null ? 0 : this.certificateRevocationUri.hashCode());
-        result = prime * result + (this.httpEnabled ? 1231 : 1237);
-        result = prime * result + this.httpPort;
-        result = prime * result + (this.httpsEnabled ? 1231 : 1237);
-        result = prime * result + Arrays.hashCode(this.httpsKeystorePasswordArray);
-        result = prime * result + (this.httpsKeystorePath == null ? 0 : this.httpsKeystorePath.hashCode());
-        result = prime * result + this.httpsPort;
-        result = prime * result + (this.isRevocationEnabled ? 1231 : 1237);
+        result = prime * result + ((certificateRevocationUri == null) ? 0 : certificateRevocationUri.hashCode());
+        result = prime * result + (httpEnabled ? 1231 : 1237);
+        result = prime * result + httpPort;
+        result = prime * result + (httpsEnabled ? 1231 : 1237);
+        result = prime * result + Arrays.hashCode(httpsKeystorePasswordArray);
+        result = prime * result + ((httpsKeystorePath == null) ? 0 : httpsKeystorePath.hashCode());
+        result = prime * result + httpsPort;
+        result = prime * result + (isRevocationEnabled ? 1231 : 1237);
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
+        if (this == obj)
             return true;
-        }
-        if (obj == null) {
+        if (obj == null)
             return false;
-        }
-        if (getClass() != obj.getClass()) {
+        if (getClass() != obj.getClass())
             return false;
-        }
         HttpServiceOptions other = (HttpServiceOptions) obj;
-        if (this.certificateRevocationUri == null) {
-            if (other.certificateRevocationUri != null) {
+        if (certificateRevocationUri == null) {
+            if (other.certificateRevocationUri != null)
                 return false;
-            }
-        } else if (!this.certificateRevocationUri.equals(other.certificateRevocationUri)) {
+        } else if (!certificateRevocationUri.equals(other.certificateRevocationUri))
             return false;
-        }
-        if (this.httpEnabled != other.httpEnabled) {
+        if (httpEnabled != other.httpEnabled)
             return false;
-        }
-        if (this.httpPort != other.httpPort) {
+        if (httpPort != other.httpPort)
             return false;
-        }
-        if (this.httpsEnabled != other.httpsEnabled) {
+        if (httpsEnabled != other.httpsEnabled)
             return false;
-        }
-        if (!Arrays.equals(this.httpsKeystorePasswordArray, other.httpsKeystorePasswordArray)) {
+        if (!Arrays.equals(httpsKeystorePasswordArray, other.httpsKeystorePasswordArray))
             return false;
-        }
-        if (this.httpsKeystorePath == null) {
-            if (other.httpsKeystorePath != null) {
+        if (httpsKeystorePath == null) {
+            if (other.httpsKeystorePath != null)
                 return false;
-            }
-        } else if (!this.httpsKeystorePath.equals(other.httpsKeystorePath)) {
+        } else if (!httpsKeystorePath.equals(other.httpsKeystorePath))
             return false;
-        }
-        if (this.httpsPort != other.httpsPort) {
+        if (httpsPort != other.httpsPort)
             return false;
-        }
-        boolean result = true;
-        if (this.isRevocationEnabled != other.isRevocationEnabled) {
-            result = false;
-        }
-        return result;
+        if (isRevocationEnabled != other.isRevocationEnabled)
+            return false;
+        return true;
     }
 
 }

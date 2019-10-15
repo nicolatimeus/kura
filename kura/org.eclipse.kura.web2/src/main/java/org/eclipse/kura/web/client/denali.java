@@ -20,7 +20,7 @@ import org.eclipse.kura.web.client.util.FailureHandler;
 import org.eclipse.kura.web.shared.model.GwtClientExtensionBundle;
 import org.eclipse.kura.web.shared.model.GwtGroupedNVPair;
 import org.eclipse.kura.web.shared.model.GwtSession;
-import org.eclipse.kura.web.shared.model.GwtUserInfo;
+import org.eclipse.kura.web.shared.model.GwtPasswordStrengthRequirements;
 import org.eclipse.kura.web.shared.model.GwtXSRFToken;
 import org.eclipse.kura.web.shared.service.GwtDeviceService;
 import org.eclipse.kura.web.shared.service.GwtDeviceServiceAsync;
@@ -62,10 +62,10 @@ public class denali implements EntryPoint {
 
             @Override
             public void onSuccess(final GwtXSRFToken token) {
-                gwtSessionService.getUserInfo(token, new AsyncCallback<GwtUserInfo>() {
+                gwtSessionService.getUserInfo(token, new AsyncCallback<GwtPasswordStrengthRequirements>() {
 
                     @Override
-                    public void onSuccess(final GwtUserInfo result) {
+                    public void onSuccess(final GwtPasswordStrengthRequirements result) {
                         final EntryClassUi entryClassUi = new EntryClassUi(result);
                         RootPanel.get().add(entryClassUi);
                         init(entryClassUi);

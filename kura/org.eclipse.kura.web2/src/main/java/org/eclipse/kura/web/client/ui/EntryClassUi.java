@@ -42,7 +42,7 @@ import org.eclipse.kura.web.client.util.request.RequestQueue;
 import org.eclipse.kura.web.shared.KuraPermission;
 import org.eclipse.kura.web.shared.model.GwtConfigComponent;
 import org.eclipse.kura.web.shared.model.GwtSession;
-import org.eclipse.kura.web.shared.model.GwtUserInfo;
+import org.eclipse.kura.web.shared.model.GwtPasswordStrengthRequirements;
 import org.eclipse.kura.web.shared.model.GwtXSRFToken;
 import org.eclipse.kura.web.shared.service.GwtComponentService;
 import org.eclipse.kura.web.shared.service.GwtComponentServiceAsync;
@@ -238,9 +238,9 @@ public class EntryClassUi extends Composite implements Context {
     private ServicesUi servicesUi;
     private AnchorListItem selectedAnchorListItem;
 
-    private static GwtUserInfo userInfo;
+    private static GwtPasswordStrengthRequirements userInfo;
 
-    public EntryClassUi(final GwtUserInfo userInfo) {
+    public EntryClassUi(final GwtPasswordStrengthRequirements userInfo) {
         EntryClassUi.userInfo = userInfo;
         this.ui = this;
         initWidget(uiBinder.createAndBindUi(this));
@@ -949,8 +949,8 @@ public class EntryClassUi extends Composite implements Context {
         waitModal.hide();
     }
 
-    public static GwtUserInfo getUserOptions() {
-        return new GwtUserInfo(userInfo);
+    public static GwtPasswordStrengthRequirements getUserOptions() {
+        return new GwtPasswordStrengthRequirements(userInfo);
     }
 
     private void forceTabsCleaning() {
