@@ -606,7 +606,7 @@ public class DataServiceImpl implements DataService, DataTransportListener, Conf
                             logger.info("Connected. Reconnect task will be terminated.");
                         }
                         connected = true;
-                    } catch (KuraConnectException e) {
+                    } catch (Exception e) {
                         logger.warn("Connect failed", e);
 
                         if (DataServiceImpl.this.dataServiceOptions.isConnectionRecoveryEnabled()) {
@@ -619,10 +619,6 @@ public class DataServiceImpl implements DataService, DataTransportListener, Conf
                                 logger.info("Maximum number of connection attempts reached. Requested reboot...");
                             }
                         }
-                    } catch (Error e) {
-                        // There's nothing we can do here but log an exception.
-                        logger.error("Unexpected Error. Task will be terminated", e);
-                        throw e;
                     } finally {
                         if (connected) {
                             unregisterAsCriticalComponent();
@@ -632,7 +628,7 @@ public class DataServiceImpl implements DataService, DataTransportListener, Conf
                     }
                 }
 
-                private boolean isAuthenticationException(KuraConnectException e) {
+                private boolean isAuthenticationException(Exception e) {
                     boolean authenticationException = false;
                     if (e.getCause() instanceof MqttException) {
                         MqttException mqttException = (MqttException) e.getCause();
@@ -668,13 +664,18 @@ public class DataServiceImpl implements DataService, DataTransportListener, Conf
     }
 
     private void stopConnectionMonitorTask() {
-        if (this.connectionMonitorFuture != null && !this.connectionMonitorFuture.isDone()) {
-
-            logger.info("Reconnect task running. Stopping it");
-
-            this.connectionMonitorFuture.cancel(true);
-        }
+        stopTask(this.connectionMonitorFuture);
         unregisterAsCriticalComponent();
+    }
+
+    private void stopTask(final ScheduledFuture<?> task) {
+        if (task == null || task.isDone() || task.isCancelled()) {
+            return;
+        }
+
+        logger.info("Task is running, Stopping it");
+
+        task.cancel(false);
     }
 
     private void unregisterAsCriticalComponent() {
@@ -739,9 +740,7 @@ public class DataServiceImpl implements DataService, DataTransportListener, Conf
     }
 
     private void handleInFlightDecongestion() {
-        if (this.congestionFuture != null && !this.congestionFuture.isDone()) {
-            this.congestionFuture.cancel(true);
-        }
+        stopTask(this.congestionFuture);
     }
 
     @Override
