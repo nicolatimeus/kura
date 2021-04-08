@@ -16,26 +16,20 @@ import static java.util.Objects.isNull;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import org.eclipse.equinox.http.jetty.JettyConfigurator;
 import org.eclipse.equinox.http.jetty.JettyConstants;
-import org.eclipse.kura.KuraException;
-import org.eclipse.kura.configuration.ComponentConfiguration;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.configuration.ConfigurationService;
-import org.eclipse.kura.configuration.Password;
 import org.eclipse.kura.crypto.CryptoService;
 import org.eclipse.kura.security.keystore.KeystoreService;
 import org.eclipse.kura.system.SystemService;
-import org.osgi.framework.Filter;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,21 +156,14 @@ public class HttpService implements ConfigurableComponent {
             return this.jettyConfig;
         }
 
-        if (!keystoreExists()) {
+        final Optional<KeyStore> keyStore = getKeystore();
+
+        if (!keyStore.isPresent()) {
             logger.warn("HTTPS is enabled but keystore service is not configured properly, disabling HTTPS");
             this.jettyConfig.put(JettyConstants.HTTPS_ENABLED, false);
             this.jettyConfig.put("kura.https.client.auth.enabled", false);
             return this.jettyConfig;
         }
-
-        Optional<ComponentConfiguration> cc = getKeystoreServiceConfig();
-        if (!cc.isPresent()) {
-            return this.jettyConfig;
-        }
-        String keystorePath = (String) cc.get().getConfigurationProperties().get("keystore.path");
-        Password keystorePassword = (Password) cc.get().getConfigurationProperties().get("keystore.password");
-
-        char[] decryptedPassword = getDecryptedPassword(keystorePassword);
 
         this.jettyConfig.put(JettyConstants.HTTPS_ENABLED, isHttpsEnabled);
 
@@ -188,8 +175,8 @@ public class HttpService implements ConfigurableComponent {
         }
 
         this.jettyConfig.put(JettyConstants.HTTPS_HOST, "0.0.0.0");
-        this.jettyConfig.put(JettyConstants.SSL_KEYSTORE, keystorePath);
-        this.jettyConfig.put(JettyConstants.SSL_PASSWORD, new String(decryptedPassword));
+
+        this.jettyConfig.put("org.eclipse.kura.keystore", keyStore.get());
 
         final boolean isRevocationEnabled = this.options.isRevocationEnabled();
 
@@ -212,33 +199,6 @@ public class HttpService implements ConfigurableComponent {
         return this.jettyConfig;
     }
 
-    private char[] getDecryptedPassword(Password keystorePassword) {
-        char[] decryptedPassword;
-        try {
-            decryptedPassword = this.cryptoService.decryptAes(keystorePassword.getPassword());
-        } catch (KuraException e) {
-            logger.warn("Unable to decrypt property password");
-            decryptedPassword = keystorePassword.getPassword();
-        }
-        return decryptedPassword;
-    }
-
-    private Optional<ComponentConfiguration> getKeystoreServiceConfig() {
-        List<ComponentConfiguration> ccs;
-        try {
-            Filter filter = FrameworkUtil.createFilter(this.options.getKeystoreServicePid());
-            ccs = this.configurationService.getComponentConfigurations(filter);
-        } catch (KuraException e1) {
-            logger.warn("HTTPS is enabled but cannot get configuration, disabling HTTPS");
-            return Optional.empty();
-        } catch (InvalidSyntaxException e) {
-            logger.warn("Unable to identify HTTPS keystore, disabling HTTPS");
-            return Optional.empty();
-        }
-
-        return Optional.of(ccs.get(0));
-    }
-
     private void activateHttpService() {
         try {
             logger.info("starting Jetty instance...");
@@ -259,20 +219,18 @@ public class HttpService implements ConfigurableComponent {
         }
     }
 
-    private boolean keystoreExists() {
+    private Optional<KeyStore> getKeystore() {
         if (isNull(this.keystoreService)) {
             logger.info("Null keystoreService");
-            return false;
+            return Optional.empty();
         }
 
         try {
-            if (!isNull(this.keystoreService.getKeyStore())) {
-                return true;
-            }
+            return Optional.of(this.keystoreService.getKeyStore());
         } catch (GeneralSecurityException | IOException e) {
             // Nothing to do: Keystore unaccessible
             logger.info("Error accessing keystore", e);
         }
-        return false;
+        return Optional.empty();
     }
 }

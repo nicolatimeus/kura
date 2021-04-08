@@ -131,13 +131,6 @@ public class KuraJettyCustomizer extends JettyCustomizer {
     private Optional<ServerConnector> createSslConnector(final Server server, final Dictionary<String, ?> settings,
             final int port, final boolean enableClientAuth) {
 
-        final Optional<String> keyStorePath = getOptional(settings, JettyConstants.SSL_KEYSTORE, String.class);
-        final Optional<String> keyStorePassword = getOptional(settings, JettyConstants.SSL_PASSWORD, String.class);
-
-        if (!(keyStorePath.isPresent() && keyStorePassword.isPresent())) {
-            return Optional.empty();
-        }
-
         final SslContextFactory.Server sslContextFactory;
 
         if (enableClientAuth) {
@@ -146,8 +139,22 @@ public class KuraJettyCustomizer extends JettyCustomizer {
             sslContextFactory = new SslContextFactory.Server();
         }
 
-        sslContextFactory.setKeyStorePath(keyStorePath.get());
-        sslContextFactory.setKeyStorePassword(keyStorePassword.get());
+        final Object keyStore = settings.get("org.eclipse.kura.keystore");
+        final Optional<String> keyStorePath = getOptional(settings, JettyConstants.SSL_KEYSTORE, String.class);
+        final Optional<String> keyStorePassword = getOptional(settings, JettyConstants.SSL_PASSWORD, String.class);
+
+        if (keyStore instanceof KeyStore) {
+            sslContextFactory.setKeyStore((KeyStore) keyStore);
+
+        } else if (keyStorePath.isPresent() && keyStorePassword.isPresent()) {
+
+            sslContextFactory.setKeyStorePath(keyStorePath.get());
+            sslContextFactory.setKeyStorePassword(keyStorePassword.get());
+
+        } else {
+            return Optional.empty();
+        }
+
         sslContextFactory.setKeyStoreType("JKS");
         sslContextFactory.setProtocol("TLS");
         sslContextFactory.setTrustManagerFactoryAlgorithm("PKIX");
