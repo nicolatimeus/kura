@@ -1,4 +1,4 @@
-Eclipse Kura - 5.3.1 - June 2023
+Eclipse Kura - 5.3.2-SNAPSHOT - August 2023
 -------------------------------------------------------------------------------------------------
 Description:
 This service release of Eclipse Kura includes the following changes:
@@ -13,19 +13,16 @@ This service release of Eclipse Kura includes the following changes:
 Target Environments:
  Kura is released as pre-compiled binary installers for the following platforms:
 
-  * Raspberry Pi 2/3/4 based on Raspberry Pi OS (32 bits) (Kura networking)
-  * Raspberry Pi 3/4 based on 64 bits OS (Kura networking)
-  * Intel Up Squared board running Ubuntu 20.04 (Kura networking)
-  * Nvidia Jetson Nano board running Ubuntu 18 (Kura networking)
-  * Generic Debian Package for x86_64 (NetworkManager)
-  * Generic Debian Package for arm32 (NetworkManager)
-  * Generic Debian Package for arm64 (NetworkManager)
-
- Kura is also available as a pre-built Docker container for Ubi 8 and Alpine
-
 Bug Fixes:
+  * d40e31dc36 - updated description (G_Ivo)
+  * 7f90dd7e0e - added continue-on-error: true (G_Ivo)
+  * 1d4317019f - remove back-tics (G_Ivo)
+  * 961c4457ab - updated release notes location (G_Ivo)
+  * b703612f64 - change file directory of pom (G_Ivo)
+  * b833e34f41 - change WIP -> TODO (G_Ivo)
+  * 577fa33773 - change back project -> kura and timestamp -> short-commit-hash (G_Ivo)
   * 06ac0c0923 - support for no Wireless Security [backport release-5.3.0] (#4760) (github-actions[bot])
-  * 3ff9742547 - Impossible to apply WiFi configuration in station mode with Security Mode Off [backport release-5.3.0] (github-actions[bot])
+  * 3ff9742547 - [web2] Impossible to apply WiFi configuration in station mode with Security Mode Off [backport release-5.3.0] (#4756) (github-actions[bot])
   * 65d08f1b58 - Fixed asset scale and offset not being applied in listen mode [backport release-5.3.0] (#4738) (github-actions[bot])
   * 39a2d18906 - added correct permissions to docker file [backport release-5.3.0] (#4735) (github-actions[bot])
   * 731fa02c4d - Fixed error on SQLite dp reinstallation [backport release-5.3.0] (#4727) (github-actions[bot])
@@ -86,11 +83,26 @@ Known Issues:
   * #253:  Check if bundle contexes correctly unget services after invoking getService
   * #222:  CloudConnectionStatusServiceImpl does not cancel workers on component deactivation
 
-Changelog: 
+Changelog:
+  * 5a85853917 - Update release-notes.yml (nicolatimeus)
+  * 5d73170c19 - Update release-notes.yml (nicolatimeus)
+  * 95e9a14679 - Update release-notes.yml (nicolatimeus)
+  * 1a5f9cb4f1 - Update release-notes.yml (nicolatimeus)
+  * 9acd33c9f5 - put back java8 profile (nicolatimeus)
+  * d40e31dc36 - fix: updated description (G_Ivo)
+  * 7f90dd7e0e - fix: added continue-on-error: true (G_Ivo)
+  * 1d4317019f - fix: remove back-tics (G_Ivo)
+  * 961c4457ab - fix: updated release notes location (G_Ivo)
+  * b703612f64 - fix: change file directory of pom (G_Ivo)
+  * b833e34f41 - fix: change WIP -> TODO (G_Ivo)
+  * 577fa33773 - fix: change back project -> kura and timestamp -> short-commit-hash (G_Ivo)
+  * c820bbf3f7 - ci: update release script so that added [WIP] sections don't get replaced (G_Ivo)
+  * 77d19a4539 - chore: automated uptick to 5.3.2-SNAPSHOT (#4768) (nicolatimeus)
+  * b7330829cf - chore: update Kura 5.3.1 release notes (#4763) (Mattia Dal Ben)
   * 19a702c271 - chore(distrib): bump bundle versions (#4762) (Mattia Dal Ben)
   * d1c010f8c3 - chore: update Kura 5.3.1 release notes (#4761) (Mattia Dal Ben)
   * 06ac0c0923 - fix: support for no Wireless Security [backport release-5.3.0] (#4760) (github-actions[bot])
-  * ffe123077c - chore: update Kura 5.3.1 release notes (#4758)
+  * ffe123077c - chore: update Kura 5.3.1 release notes (#4758) (Salvatore Coppola)
   * 3ff9742547 - fix(web2): Impossible to apply WiFi configuration in station mode with Security Mode Off [backport release-5.3.0] (#4756) (github-actions[bot])
   * efd2c774d9 - chore: add Kura 5.3.1 release notes (#4741) (github-actions[bot])
   * b735ac1692 - chore: automated uptick to Eclipse Kura 5.3.1 (#4740) (github-actions[bot])
