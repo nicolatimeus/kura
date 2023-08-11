@@ -73,7 +73,7 @@ jobs:
     
     - name: Files exist write description
       id: get-description
-      if: steps.check_files.outputs.exists == true && github.event.inputs.overwrite == false
+      if: steps.check_files.outputs.exists == 'true'
       # Only runs if all of the files exist
       run: |
           awk 'NR==FNR { desc = (desc == "" ? $0 : desc "\n" $0); next } /\[TODO\]/ && !done { sub(/\[TODO\]/, desc); done=1 } 1' description.txt done=0 RELEASE_NOTES.txt
@@ -83,7 +83,7 @@ jobs:
         
     - name: Files exist clean up
       id: clean-up-files
-      if: steps.check_files.outputs.exists == true && github.event.inputs.overwrite == false
+      if: steps.check_files.outputs.exists == 'true'
       # Only runs if all of the files exist
       run: |
         rm description.txt
