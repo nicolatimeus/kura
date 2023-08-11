@@ -1,0 +1,7 @@
+This service release of Eclipse Kura includes the following changes:
+- Fixed metatype issue in Wires Conditional component preventing correct displaying in the Web UI
+- Fixed distribution issue with SQLite and wires script tools deployment packages 
+- Fixed scale and offset not applied in assets with channels in listen mode
+- Updated org.xerial:sqlite-jdbc to 3.42.0.0
+- Fixed an issue when trying to connect for the first time with a Wifi Network without using any security mode
+- Fixed support for Wifi using Security Type "None"

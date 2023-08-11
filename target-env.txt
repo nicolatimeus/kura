@@ -1,0 +1,1 @@
+ Kura is released as pre-compiled binary installers for the following platforms:
