@@ -44,7 +44,7 @@ jobs:
 
     - name: Files exist
       id: get-old-text
-      if: steps.check_files.outputs.exists == true && github.event.inputs.overwrite == false
+      if: steps.check_files.outputs.exists == 'true'
       run: |
         awk '/Description:/ {found=1; next} /^$/ {found=0} found {print}' ./kura/distrib/RELEASE_NOTES.txt > description.txt
         awk '/Target Environments:/ {found=1; next} /^$/ {found=0} found {print}' ./kura/distrib/RELEASE_NOTES.txt > target-env.txt
