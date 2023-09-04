@@ -26,15 +26,18 @@ public class RestServiceOptions {
     private static final Property<Integer[]> ALLOWED_PORTS = new Property<>("allowed.ports", new Integer[] {});
     private static final Property<Boolean> PASSWORD_AUTH_ENABLED = new Property<>("auth.password.enabled", true);
     private static final Property<Boolean> CERTIFICATE_ENABLED = new Property<>("auth.certificate.enabled", true);
+    private static final Property<Boolean> COMPAT_MODE = new Property<>("compat.mode", false);
 
     private final Set<Integer> allowedPorts;
     private final boolean passwordAuthEnabled;
     private final boolean certificateAuthEnabled;
+    private final boolean compatMode;
 
     public RestServiceOptions(final Map<String, Object> properties) {
         this.allowedPorts = loadIntArrayProperty(ALLOWED_PORTS.get(properties));
         this.passwordAuthEnabled = PASSWORD_AUTH_ENABLED.get(properties);
         this.certificateAuthEnabled = CERTIFICATE_ENABLED.get(properties);
+        this.compatMode = COMPAT_MODE.get(properties);
     }
 
     public Set<Integer> getAllowedPorts() {
@@ -47,6 +50,10 @@ public class RestServiceOptions {
 
     public boolean isCertificateAuthEnabled() {
         return certificateAuthEnabled;
+    }
+
+    public boolean isCompatMode() {
+        return compatMode;
     }
 
     private static Set<Integer> loadIntArrayProperty(final Integer[] list) {
@@ -69,7 +76,7 @@ public class RestServiceOptions {
 
     @Override
     public int hashCode() {
-        return Objects.hash(allowedPorts, certificateAuthEnabled, passwordAuthEnabled);
+        return Objects.hash(allowedPorts, certificateAuthEnabled, compatMode, passwordAuthEnabled);
     }
 
     @Override
@@ -82,7 +89,7 @@ public class RestServiceOptions {
         }
         RestServiceOptions other = (RestServiceOptions) obj;
         return Objects.equals(allowedPorts, other.allowedPorts)
-                && certificateAuthEnabled == other.certificateAuthEnabled
+                && certificateAuthEnabled == other.certificateAuthEnabled && compatMode == other.compatMode
                 && passwordAuthEnabled == other.passwordAuthEnabled;
     }
 

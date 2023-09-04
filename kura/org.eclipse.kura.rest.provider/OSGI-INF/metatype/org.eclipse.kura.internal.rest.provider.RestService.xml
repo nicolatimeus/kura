@@ -16,6 +16,8 @@
         <AD id="auth.password.enabled" name="Password authentication enabled" type="Boolean" required="true" default="true" description="Enables or disables the built-in password authentication support."></AD>
 
         <AD id="auth.certificate.enabled" name="Certificate authentication enabled" type="Boolean" required="true" default="true" description="Enables or disables the built-in certificate authentication support."></AD>
+        
+        <AD id="compat.mode" name="Enable Compatibility Mode" type="Boolean" required="true" default="false" description="If enabled, all services that are annotated with javax.ws.rs.Path or javax.ws.rs.ext.Provider will be registered even if do not have the osgi.jaxrs.resource or osgi.jaxrs.extension properties."></AD>
     </OCD>
 
     <Designate pid="org.eclipse.kura.internal.rest.provider.RestService">

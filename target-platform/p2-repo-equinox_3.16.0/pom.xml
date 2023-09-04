@@ -163,6 +163,7 @@
                                 <mkdir dir="${project.build.directory}/source/plugins" />
                                 <unzip src="${project.build.directory}/download/equinox.zip" dest="${project.build.directory}/source/plugins">
                                     <patternset>
+                                        <exclude name="plugins/javax.servlet*.jar" />
                                         <exclude name="plugins/org.eclipse.osgi.compatibility.state*.jar" />
                                         <exclude name="plugins/org.eclipse.equinox.*servletbridge*.jar" />
                                         <exclude name="plugins/org.eclipse.equinox.p2*.jar" />
