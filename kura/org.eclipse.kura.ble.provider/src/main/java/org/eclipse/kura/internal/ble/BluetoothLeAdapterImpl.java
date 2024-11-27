@@ -31,6 +31,7 @@ import org.eclipse.kura.KuraBluetoothRemoveException;
 import org.eclipse.kura.bluetooth.le.BluetoothLeAdapter;
 import org.eclipse.kura.bluetooth.le.BluetoothLeDevice;
 import org.eclipse.kura.bluetooth.le.BluetoothTransportType;
+import org.freedesktop.dbus.connections.impl.DBusConnection;
 import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.exceptions.DBusExecutionException;
 import org.freedesktop.dbus.types.UInt16;
@@ -422,5 +423,9 @@ public class BluetoothLeAdapterImpl implements BluetoothLeAdapter {
     // For test only
     public DeviceManager getDeviceManager() {
         return DeviceManager.getInstance();
+    }
+
+    public DBusConnection getConnection() {
+        return adapter.getDbusConnection();
     }
 }
