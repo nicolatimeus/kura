@@ -53,13 +53,13 @@ public class JsonJavaSystemDeploymentPackagesMapper {
         // empty constructor
     }
 
-    public static String marshal(SystemDeploymentPackages systemDPs) {
+    public static JsonObject marshal(SystemDeploymentPackages systemDPs) {
         JsonObject json = Json.object();
         JsonArray dps = new JsonArray();
         Arrays.asList(systemDPs.getDeploymentPackages()).stream().forEach(dp -> dps.add(getJsonDP(dp)));
         json.add(DEPLOYMENT_PACKAGES, dps);
 
-        return json.toString();
+        return json;
     }
 
     private static JsonObject getJsonDP(SystemDeploymentPackage dp) {

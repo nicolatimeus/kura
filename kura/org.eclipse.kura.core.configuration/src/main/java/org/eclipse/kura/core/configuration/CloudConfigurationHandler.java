@@ -204,14 +204,10 @@ public class CloudConfigurationHandler implements RequestHandler {
 
         if (snapshotId != null) {
             long sid = Long.parseLong(snapshotId);
-            XmlComponentConfigurations xmlConfigs = ((ConfigurationServiceImpl) this.configurationService)
-                    .loadEncryptedSnapshotFileContent(sid);
-            //
-            // marshall the response
+            List<ComponentConfiguration> configs = this.configurationService.getSnapshot(sid);
 
-            List<ComponentConfiguration> configs = xmlConfigs.getConfigurations();
-            configs.forEach(config -> ((ConfigurationServiceImpl) this.configurationService)
-                    .decryptConfigurationProperties(config.getConfigurationProperties()));
+            final XmlComponentConfigurations xmlConfigs = new XmlComponentConfigurations();
+            xmlConfigs.setConfigurations(configs);
 
             byte[] body = toResponseBody(xmlConfigs);
 

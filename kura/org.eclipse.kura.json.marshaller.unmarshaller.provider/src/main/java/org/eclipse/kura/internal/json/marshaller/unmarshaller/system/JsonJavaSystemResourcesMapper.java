@@ -41,13 +41,13 @@ public class JsonJavaSystemResourcesMapper {
         // empty constructor
     }
 
-    public static String marshal(SystemResourcesInfo systemResourcesInfo) {
+    public static JsonObject marshal(SystemResourcesInfo systemResourcesInfo) {
         JsonObject json = Json.object();
         JsonArray resources = new JsonArray();
         systemResourcesInfo.getSystemResources().stream().forEach(sri -> resources.add(getJsonSystemResource(sri)));
         json.add(INVENTORY, resources);
 
-        return json.toString();
+        return json;
     }
 
     private static JsonObject getJsonSystemResource(SystemResourceInfo sri) {

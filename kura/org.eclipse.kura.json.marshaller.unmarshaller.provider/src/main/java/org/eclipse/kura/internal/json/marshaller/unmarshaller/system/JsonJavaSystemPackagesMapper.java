@@ -41,13 +41,13 @@ public class JsonJavaSystemPackagesMapper {
         // empty constructor
     }
 
-    public static String marshal(SystemPackages systemPackages) {
+    public static JsonObject marshal(SystemPackages systemPackages) {
         JsonObject json = Json.object();
         JsonArray packages = new JsonArray();
         systemPackages.getSystemPackages().stream().forEach(p -> packages.add(getJsonPackage(p)));
         json.add(SYSTEM_PACKAGES, packages);
 
-        return json.toString();
+        return json;
     }
 
     private static JsonObject getJsonPackage(SystemPackage p) {

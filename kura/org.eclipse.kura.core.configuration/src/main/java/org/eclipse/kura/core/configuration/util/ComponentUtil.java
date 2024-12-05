@@ -20,12 +20,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLStreamException;
 
 import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
+import org.eclipse.kura.configuration.ComponentConfiguration;
 import org.eclipse.kura.configuration.Password;
 import org.eclipse.kura.configuration.metatype.AD;
 import org.eclipse.kura.configuration.metatype.Designate;
@@ -476,5 +478,68 @@ public class ComponentUtil {
             throw new KuraException(KuraErrorCode.DECODER_ERROR, "value");
         }
         return result;
+    }
+
+    public static void encryptConfigs(List<ComponentConfiguration> configs, final CryptoService cryptoService) {
+        if (configs != null) {
+            for (ComponentConfiguration config : configs) {
+                encryptConfigurationProperties(config.getConfigurationProperties(), cryptoService);
+            }
+        }
+    }
+
+    public static void encryptConfigurationProperties(Map<String, Object> propertiesToUpdate,
+            final CryptoService cryptoService) {
+        if (propertiesToUpdate == null) {
+            return;
+        }
+
+        for (Entry<String, Object> property : propertiesToUpdate.entrySet()) {
+            Object configValue = property.getValue();
+            if (configValue instanceof Password || configValue instanceof Password[]) {
+                try {
+                    Object encryptedValue = encryptPasswordProperties(configValue, cryptoService);
+                    propertiesToUpdate.put(property.getKey(), encryptedValue);
+                } catch (KuraException e) {
+                    logger.warn("Failed to encrypt Password property: {}", property.getKey());
+                    propertiesToUpdate.remove(property.getKey());
+                }
+            }
+        }
+    }
+
+    private static Object encryptPasswordProperties(Object configValue, final CryptoService cryptoService)
+            throws KuraException {
+        Object encryptedValue = null;
+        if (configValue instanceof Password) {
+            encryptedValue = encryptPassword((Password) configValue, cryptoService);
+
+        } else if (configValue instanceof Password[]) {
+            Password[] passwordArray = (Password[]) configValue;
+            Password[] encryptedPasswords = new Password[passwordArray.length];
+
+            for (int i = 0; i < passwordArray.length; i++) {
+                encryptedPasswords[i] = encryptPassword(passwordArray[i], cryptoService);
+            }
+            encryptedValue = encryptedPasswords;
+        }
+        return encryptedValue;
+    }
+
+    private static boolean isEncrypted(Password configPassword, final CryptoService cryptoService) {
+        boolean result = false;
+        try {
+            cryptoService.decryptAes(configPassword.getPassword());
+            result = true;
+        } catch (Exception e1) {
+        }
+        return result;
+    }
+
+    private static Password encryptPassword(Password password, final CryptoService cryptoService) throws KuraException {
+        if (!isEncrypted(password, cryptoService)) {
+            return new Password(cryptoService.encryptAes(password.getPassword()));
+        }
+        return password;
     }
 }

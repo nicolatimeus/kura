@@ -56,7 +56,7 @@ public class CloudPayloadJsonEncoder {
      * @throws IllegalArgumentException
      *             if the conversion fails
      */
-    public static String marshal(KuraPayload kuraPayload) {
+    public static JsonObject marshal(KuraPayload kuraPayload) {
         JsonObject json = Json.object();
 
         encodeTimestamp(kuraPayload, json);
@@ -67,7 +67,7 @@ public class CloudPayloadJsonEncoder {
 
         encodeBody(kuraPayload, json);
 
-        return json.toString();
+        return json;
     }
 
     private static void encodeBody(KuraPayload kuraPayload, JsonObject json) {

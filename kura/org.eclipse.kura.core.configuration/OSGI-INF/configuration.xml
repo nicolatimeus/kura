@@ -20,37 +20,27 @@
       <provide interface="org.eclipse.kura.configuration.metatype.OCDService"/>
    </service>
    <property name="service.pid" value="org.eclipse.kura.configuration.ConfigurationService"/>
-   <reference bind="setEventAdmin" cardinality="1..1" interface="org.osgi.service.event.EventAdmin" name="EventAdmin" policy="static" unbind="unsetEventAdmin"/>
+   <reference bind="setEventAdmin" cardinality="1..1" interface="org.osgi.service.event.EventAdmin" name="EventAdmin" policy="static"/>
    <reference name="ConfigurationAdmin"
               bind="setConfigurationAdmin"
-              unbind="unsetConfigurationAdmin"
               cardinality="1..1"
               policy="static"
               interface="org.osgi.service.cm.ConfigurationAdmin"/>
    <reference name="MetaTypeService"
               bind="setMetaTypeService"
-              unbind="unsetMetaTypeService"
               cardinality="1..1"
               policy="static"
               interface="org.osgi.service.metatype.MetaTypeService"/>
-   <reference name="SystemService"
-              bind="setSystemService"
-              unbind="unsetSystemService"
-              cardinality="1..1"
-              policy="static"
-              interface="org.eclipse.kura.system.SystemService"/>
    <reference name="CryptoService"
               interface="org.eclipse.kura.crypto.CryptoService"
               bind="setCryptoService"
-              unbind="unsetCryptoService"
               cardinality="1..1"
               policy="static"/>
    <reference bind="setScrService"
               cardinality="1..1"
               interface="org.osgi.service.component.runtime.ServiceComponentRuntime"
               name="ScrService"
-              policy="static"
-              unbind="unsetScrService"/>
+              policy="static"/>
    <reference bind="addConfigurableComponent"
               cardinality="0..n"
               interface="org.eclipse.kura.configuration.ConfigurableComponent"
@@ -68,13 +58,12 @@
               interface="org.eclipse.kura.marshalling.Unmarshaller"
               name="Unmarshaller"
               policy="static"
-              target="(kura.service.pid=org.eclipse.kura.xml.marshaller.unmarshaller.provider)"
-              unbind="unsetXmlUnmarshaller"/>
+              target="(kura.service.pid=org.eclipse.kura.xml.marshaller.unmarshaller.provider)"/>
    <reference bind="setXmlMarshaller"
               cardinality="1..1"
               interface="org.eclipse.kura.marshalling.Marshaller"
               name="Marshaller"
               policy="static"
-              target="(kura.service.pid=org.eclipse.kura.xml.marshaller.unmarshaller.provider)"
-              unbind="unsetXmlMarshaller"/>
+              target="(kura.service.pid=org.eclipse.kura.xml.marshaller.unmarshaller.provider)"/>
+   <reference bind="setConfigurationSnapshotStore" cardinality="1..1" interface="org.eclipse.kura.core.configuration.ConfigurationSnapshotStore" name="ConfigurationSnapshotStore" policy="static"/>
 </scr:component>

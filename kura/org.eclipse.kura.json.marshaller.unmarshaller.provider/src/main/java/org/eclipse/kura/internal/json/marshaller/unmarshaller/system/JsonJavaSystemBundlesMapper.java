@@ -46,13 +46,13 @@ public class JsonJavaSystemBundlesMapper {
         // empty constructor
     }
 
-    public static String marshal(SystemBundles systemBundles) {
+    public static JsonObject marshal(SystemBundles systemBundles) {
         JsonObject json = Json.object();
         JsonArray bundles = new JsonArray();
         Arrays.asList(systemBundles.getBundles()).stream().forEach(sb -> bundles.add(getJsonBundle(sb)));
         json.add(SYSTEM_BUNDLES, bundles);
 
-        return json.toString();
+        return json;
     }
 
     private static JsonObject getJsonBundle(SystemBundle sb) {

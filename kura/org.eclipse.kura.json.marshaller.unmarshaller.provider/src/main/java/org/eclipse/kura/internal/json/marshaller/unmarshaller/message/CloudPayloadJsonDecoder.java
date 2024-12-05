@@ -25,7 +25,8 @@ import static org.eclipse.kura.internal.json.marshaller.unmarshaller.message.Clo
 import static org.eclipse.kura.internal.json.marshaller.unmarshaller.message.CloudPayloadJsonFields.CloudPayloadJsonPositionFields.SPEED;
 import static org.eclipse.kura.internal.json.marshaller.unmarshaller.message.CloudPayloadJsonFields.CloudPayloadJsonPositionFields.STATUS;
 
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Base64;
 import java.util.Date;
 
@@ -58,33 +59,29 @@ public class CloudPayloadJsonDecoder {
      * @param stringJson
      *            a Json encoded as a String.
      * @return a {@link KuraPayload} that directly maps the received array.
+     * @throws IOException
      */
-    public static KuraPayload buildFromString(String stringJson) {
-        JsonObject json = Json.parse(stringJson).asObject();
+    public static KuraPayload buildFromReader(Reader r) throws IOException {
+        JsonObject json = Json.parse(r).asObject();
 
         KuraPayload payload = new KuraPayload();
 
-        try {
-            for (JsonObject.Member member : json) {
-                String name = member.getName();
-                JsonValue value = member.getValue();
-                if (SENTON.value().equalsIgnoreCase(name)) {
-                    decodeTimestamp(payload, value);
-                } else if (BODY.value().equalsIgnoreCase(name)) {
-                    decodeBody(payload, value);
-                } else if (POSITION.value().equalsIgnoreCase(name) && value.isObject()) {
-                    decodePosition(payload, value.asObject());
-                } else if (METRICS.value().equalsIgnoreCase(name) && value.isObject()) {
-                    decodeMetric(payload, value.asObject());
-                } else {
-                    throw new IllegalArgumentException(String.format("Unrecognized value: %s", name));
-                }
+        for (JsonObject.Member member : json) {
+            String name = member.getName();
+            JsonValue value = member.getValue();
+            if (SENTON.value().equalsIgnoreCase(name)) {
+                decodeTimestamp(payload, value);
+            } else if (BODY.value().equalsIgnoreCase(name)) {
+                decodeBody(payload, value);
+            } else if (POSITION.value().equalsIgnoreCase(name) && value.isObject()) {
+                decodePosition(payload, value.asObject());
+            } else if (METRICS.value().equalsIgnoreCase(name) && value.isObject()) {
+                decodeMetric(payload, value.asObject());
+            } else {
+                throw new IllegalArgumentException(String.format("Unrecognized value: %s", name));
             }
-        } catch (Exception e) {
-            logger.warn("Cannot parse Json", e);
-            payload = new KuraPayload();
-            payload.setBody(stringJson.getBytes(StandardCharsets.UTF_8));
         }
+
         return payload;
     }
 

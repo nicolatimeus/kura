@@ -13,6 +13,8 @@
 package org.eclipse.kura.crypto;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -43,6 +45,8 @@ public interface CryptoService {
      */
     public char[] encryptAes(char[] value) throws KuraException;
 
+    public OutputStream encryptAes(OutputStream stream) throws KuraException;
+
     /**
      * Returns a char array based on the provided encrypted value.
      *
@@ -52,6 +56,8 @@ public interface CryptoService {
      * @throws KuraException
      */
     public char[] decryptAes(char[] encryptedValue) throws KuraException;
+
+    public InputStream decryptAes(InputStream encryptedStream) throws KuraException;
 
     /**
      * Returns an AES encrypted string based on the provided value.

@@ -13,10 +13,15 @@
 package org.eclipse.kura.internal.xml.marshaller.unmarshaller;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -64,6 +69,16 @@ public class XmlMarshallUnmarshallImpl implements Marshaller, Unmarshaller {
             throw new KuraException(KuraErrorCode.ENCODE_ERROR, VALUE_CONSTANT);
         }
         return sw.toString();
+    }
+
+    @Override
+    public void marshal(final OutputStream out, final Object object) throws KuraException {
+        final Writer wr = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+        try {
+            marshal(object, wr);
+        } catch (Exception e) {
+            throw new KuraException(KuraErrorCode.ENCODE_ERROR, VALUE_CONSTANT);
+        }
     }
 
     private void marshal(Object object, Writer w) throws Exception {
@@ -201,6 +216,12 @@ public class XmlMarshallUnmarshallImpl implements Marshaller, Unmarshaller {
         return unmarshal(sr, clazz);
     }
 
+    @Override
+    public <T> T unmarshal(InputStream in, Class<T> clazz) throws KuraException {
+        Reader r = new InputStreamReader(in, StandardCharsets.UTF_8);
+        return unmarshal(r, clazz);
+    }
+
     private <T> T unmarshal(Reader r, Class<T> clazz) throws KuraException {
         DocumentBuilderFactory factory = null;
         DocumentBuilder parser = null;
@@ -246,4 +267,5 @@ public class XmlMarshallUnmarshallImpl implements Marshaller, Unmarshaller {
             throw new IllegalArgumentException("Class not supported!");
         }
     }
+
 }

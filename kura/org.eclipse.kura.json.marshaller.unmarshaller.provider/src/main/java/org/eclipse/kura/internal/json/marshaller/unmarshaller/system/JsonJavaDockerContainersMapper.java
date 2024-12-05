@@ -12,6 +12,8 @@
  *******************************************************************************/
 package org.eclipse.kura.internal.json.marshaller.unmarshaller.system;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Optional;
 
 import org.eclipse.kura.core.inventory.resources.DockerContainer;
@@ -45,8 +47,8 @@ public class JsonJavaDockerContainersMapper {
         // empty constructor
     }
 
-    public static DockerContainer unmarshal(final String encoded) {
-        final JsonObject object = Json.parse(encoded).asObject();
+    public static DockerContainer unmarshal(final Reader r) throws IOException {
+        final JsonObject object = Json.parse(r).asObject();
 
         final String name = getStringValue(object, SYSTEM_CONTAINERS_CONTAINER_NAME);
         final String version = getStringValue(object, SYSTEM_CONTAINERS_CONTAINER_VERSION);
@@ -55,13 +57,13 @@ public class JsonJavaDockerContainersMapper {
 
     }
 
-    public static String marshal(DockerContainers dockerContainers) {
+    public static JsonObject marshal(DockerContainers dockerContainers) {
         JsonObject json = Json.object();
         JsonArray containers = new JsonArray();
         dockerContainers.getDockerContainers().stream().forEach(p -> containers.add(getJsonPackage(p)));
         json.add(SYSTEM_CONTAINERS, containers);
 
-        return json.toString();
+        return json;
     }
 
     private static JsonObject getJsonPackage(DockerContainer p) {
