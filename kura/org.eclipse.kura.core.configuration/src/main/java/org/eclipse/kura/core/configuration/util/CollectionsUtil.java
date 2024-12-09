@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 import org.eclipse.kura.configuration.Password;
 import org.eclipse.kura.configuration.metatype.AD;
@@ -101,5 +102,27 @@ public class CollectionsUtil {
             }
         }
         return dictionary;
+    }
+
+    public static boolean equals(final Dictionary<String, Object> first, final Dictionary<String, Object> second) {
+        if (first == null || second == null) {
+            return first == second;
+        }
+
+        if (first.size() != second.size()) {
+            return false;
+        }
+
+        final Enumeration<String> keys = first.keys();
+
+        while (keys.hasMoreElements()) {
+            final String key = keys.nextElement();
+
+            if (!Objects.deepEquals(first.get(key), second.get(key))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

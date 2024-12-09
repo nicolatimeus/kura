@@ -24,14 +24,15 @@ import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
@@ -517,86 +518,135 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
 
     @Override
     public synchronized void rollback(long id) throws KuraException {
-        // load the snapshot we need to rollback to
-        List<ComponentConfiguration> configs = this.snapshotStore.loadSnapshot(id);
 
-        //
-        // restore configuration
-        logger.info("Rolling back to snapshot {}...", id);
+        final Map<String, ComponentConfiguration> snapshotConfigs = ComponentUtil
+                .toMap(this.snapshotStore.loadSnapshot(id));
 
-        Set<String> snapshotPids = new HashSet<>();
-        boolean snapshotOnConfirmation = false;
-        List<Throwable> causes = new ArrayList<>();
+        final Map<String, Configuration> currentConfigs;
 
-        // remove all existing factory configurations
-        for (String pid : new ArrayList<>(this.factoryPidByPid.keySet())) {
-            try {
-                deleteFactoryConfiguration(pid, false);
-            } catch (Exception e) {
-                logger.warn("Failed to remove factory configuration for pid: " + pid, e);
-                causes.add(e);
-            }
+        try {
+
+            currentConfigs = Arrays.stream(this.configurationAdmin.listConfigurations(null))
+                    .collect(Collectors.toMap(c -> {
+                        final Dictionary<String, Object> properties = c.getProperties();
+
+                        if (properties != null) {
+                            final Object kuraServicePid = properties.get(KURA_SERVICE_PID);
+
+                            if (kuraServicePid instanceof String) {
+                                return (String) kuraServicePid;
+                            }
+                        }
+
+                        return c.getPid();
+                    }, Function.identity()));
+
+        } catch (final Exception e) {
+            throw new KuraException(KuraErrorCode.IO_ERROR, e);
         }
 
-        // create all factory configurations in snapshot
-        final Stream<ComponentConfiguration> factoryConfigurationsInSnapshot = configs.stream()
-                .filter(config -> config.getPid() != null
-                        && config.getConfigurationProperties().containsKey(ConfigurationAdmin.SERVICE_FACTORYPID));
+        final List<Throwable> causes = new ArrayList<>();
+        Iterator<Entry<String, Configuration>> iter = currentConfigs.entrySet().iterator();
 
-        factoryConfigurationsInSnapshot.forEach(config -> {
-            final String pid = config.getPid();
-            final Map<String, Object> properties = config.getConfigurationProperties();
-            final String factoryPid = properties.get(ConfigurationAdmin.SERVICE_FACTORYPID).toString();
-            try {
-                createFactoryConfiguration(factoryPid, pid, properties, false);
-            } catch (Exception e) {
-                logger.warn("Error during rollback for component " + pid, e);
-                causes.add(e);
-            }
-        });
+        while (iter.hasNext()) {
+            final Entry<String, Configuration> e = iter.next();
 
-        for (ComponentConfiguration config : configs) {
-            if (config != null) {
-                try {
-                    rollbackConfigurationInternal(config.getPid(), config.getConfigurationProperties(),
-                            snapshotOnConfirmation);
-                } catch (Exception e) {
-                    logger.warn("Error during rollback for component " + config.getPid(), e);
-                    causes.add(e);
+            final Optional<ComponentConfiguration> configInSnapshot = Optional
+                    .ofNullable(snapshotConfigs.get(e.getKey()));
+
+            if (e.getValue().getFactoryPid() == null) {
+
+                if (configInSnapshot.isEmpty() && this.allActivatedPids.contains(e.getKey())) {
+                    try {
+                        rollbackConfigurationInternal(new ComponentConfigurationImpl(e.getKey(), null, new HashMap<>()),
+                                Optional.of(e.getValue()));
+                    } catch (IOException ex) {
+                        logger.warn("failed to revert to factory configuration{}", e.getKey(), ex);
+                        causes.add(ex);
+                    }
                 }
-                // Track the pid of the component
-                snapshotPids.add(config.getPid());
+
+            } else if (configInSnapshot.isEmpty() || !Objects.equals(e.getValue().getFactoryPid(),
+                    configInSnapshot.get().getConfigurationProperties().get(ConfigurationAdmin.SERVICE_FACTORYPID))) {
+
+                try {
+                    e.getValue().delete();
+                    iter.remove();
+                    unregisterComponentConfiguration(e.getKey());
+                } catch (IOException ex) {
+                    logger.warn("failed to delete configuration {}", e.getKey(), ex);
+                    causes.add(ex);
+                }
             }
         }
 
-        // rollback to the default configuration for those configurable
-        // components
-        // whose configuration is not present in the snapshot
-        Set<String> pids = new HashSet<>(this.allActivatedPids);
-        pids.removeAll(snapshotPids);
+        for (final ComponentConfiguration snapshotConfig : snapshotConfigs.values()) {
 
-        for (String pid : pids) {
-            logger.info("Rolling back to default configuration for component pid: '{}'", pid);
+            final Optional<Configuration> existing = Optional.ofNullable(currentConfigs.get(snapshotConfig.getPid()));
+
             try {
-                rollbackConfigurationInternal(pid, Collections.emptyMap(), snapshotOnConfirmation);
-            } catch (Exception e) {
-                logger.warn("Error during rollback for component " + pid, e);
+                rollbackConfigurationInternal(snapshotConfig, existing);
+            } catch (final Exception e) {
+                logger.warn("failed to rollback configuration for pid {}", snapshotConfig.getPid(), e);
                 causes.add(e);
             }
         }
+
+        this.pendingDeletePids.clear();
+        this.uncommittedChanges.clear();
 
         if (!causes.isEmpty()) {
             throw new KuraPartialSuccessException("Rollback", causes);
         }
 
-        // Do not call snapshot() here because it gets the configurations of
-        // SelfConfiguringComponents
-        // using SelfConfiguringComponent.getConfiguration() and the
-        // configuration returned
-        // might be the old one not the one just loaded from the snapshot and
-        // updated through
-        // the Configuration Admin. Instead just make a copy of the snapshot.
-        this.snapshotStore.saveSnapshot(configs);
+        this.snapshotStore.saveSnapshot(snapshotConfigs.values());
+    }
+
+    private void rollbackConfigurationInternal(final ComponentConfiguration snapshotConfig,
+            final Optional<Configuration> existingConfig) throws IOException {
+        final Optional<String> factoryPid = Optional
+                .ofNullable(snapshotConfig.getConfigurationProperties().get(ConfigurationAdmin.SERVICE_FACTORYPID))
+                .filter(String.class::isInstance).map(String.class::cast);
+
+        final Map<String, Object> result = snapshotConfig.getConfigurationProperties();
+
+        final Optional<OCD> ocd = Optional.ofNullable(getRegisteredOCD(snapshotConfig.getPid()));
+
+        if (ocd.isPresent()) {
+            mergeWithDefaults(ocd.get(), result);
+        }
+
+        final Dictionary<String, Object> resultAsDictionary = CollectionsUtil.mapToDictionary(result);
+
+        resultAsDictionary.put(KURA_SERVICE_PID, snapshotConfig.getPid());
+        resultAsDictionary.remove(Constants.SERVICE_PID);
+
+        final Configuration target;
+
+        if (existingConfig.isPresent()) {
+            target = existingConfig.get();
+        } else if (factoryPid.isPresent()) {
+            logger.info("creating new factory configuration for pid {} and factory pid {}", snapshotConfig.getPid(),
+                    factoryPid.get());
+            target = this.configurationAdmin.createFactoryConfiguration(factoryPid.get(), null);
+        } else {
+            logger.info("creating new configuration for pid {}", snapshotConfig.getPid());
+            target = this.configurationAdmin.getConfiguration(snapshotConfig.getPid());
+        }
+
+        final Dictionary<String, Object> currentProperties = target.getProperties();
+
+        if (currentProperties != null) {
+            currentProperties.remove(Constants.SERVICE_PID);
+        }
+
+        if (!CollectionsUtil.equals(resultAsDictionary, currentProperties)) {
+            logger.info("updating configuration for pid {}", snapshotConfig.getPid());
+            target.update(resultAsDictionary);
+            if (factoryPid.isPresent()) {
+                registerComponentConfiguration(snapshotConfig.getPid(), target.getPid(), factoryPid.get());
+            }
+        }
     }
 
     @Override
@@ -714,7 +764,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
         this.allActivatedPids.remove(pid);
     }
 
-    boolean mergeWithDefaults(OCD ocd, Map<String, Object> properties) throws KuraException {
+    boolean mergeWithDefaults(OCD ocd, Map<String, Object> properties) {
         boolean changed = false;
         Set<String> keys = properties.keySet();
 
@@ -725,7 +775,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
         if (!defaultsKeys.isEmpty()) {
 
             changed = true;
-            logger.info("Merging configuration for pid: {}", ocd.getId());
+            logger.debug("Merging configuration for pid: {}", ocd.getId());
             for (String key : defaultsKeys) {
 
                 Object value = defaults.get(key);
@@ -737,7 +787,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
         return changed;
     }
 
-    Map<String, Object> getDefaultProperties(OCD ocd) throws KuraException {
+    Map<String, Object> getDefaultProperties(OCD ocd) {
         return ComponentUtil.getDefaultProperties(ocd, this.ctx);
     }
 
@@ -1200,44 +1250,6 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
             }
 
             addToUncommittedChanges(pid, properties);
-        } catch (IOException e) {
-            logger.warn("Error updating Configuration of ConfigurableComponent with pid {}", pid, e);
-            throw new KuraException(KuraErrorCode.CONFIGURATION_UPDATE, e, pid);
-        }
-    }
-
-    private void rollbackConfigurationInternal(String pid, Map<String, Object> properties,
-            boolean snapshotOnConfirmation) throws KuraException {
-        logger.debug("Attempting to rollback configuration for {}", pid);
-
-        if (!this.allActivatedPids.contains(pid)) {
-            logger.info("UpdatingConfiguration ignored as ConfigurableComponent {} is NOT tracked.", pid);
-            return;
-        }
-        if (properties == null) {
-            logger.info("UpdatingConfiguration ignored as properties for ConfigurableComponent {} are NULL.", pid);
-            return;
-        }
-
-        // get the OCD from the registered ConfigurableComponents
-        OCD registerdOCD = getRegisteredOCD(pid);
-        if (registerdOCD == null) {
-            logger.info("UpdatingConfiguration ignored as OCD for pid {} cannot be found.", pid);
-            return;
-        }
-
-        Map<String, Object> mergedProperties = new HashMap<>();
-        mergeWithDefaults(registerdOCD, mergedProperties);
-
-        mergedProperties.putAll(properties);
-
-        if (!mergedProperties.containsKey(ConfigurationService.KURA_SERVICE_PID)) {
-            mergedProperties.put(ConfigurationService.KURA_SERVICE_PID, pid);
-        }
-
-        try {
-            updateComponentConfiguration(pid, mergedProperties, snapshotOnConfirmation);
-            logger.info("Updating Configuration of ConfigurableComponent {} ... Done.", pid);
         } catch (IOException e) {
             logger.warn("Error updating Configuration of ConfigurableComponent with pid {}", pid, e);
             throw new KuraException(KuraErrorCode.CONFIGURATION_UPDATE, e, pid);
