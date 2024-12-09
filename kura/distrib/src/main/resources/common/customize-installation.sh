@@ -43,7 +43,11 @@ customize_snapshot() {
         mkdir /opt/eclipse/kura/user/snapshots/
     fi
 
-    mv "/opt/eclipse/kura/install/snapshot_0.xml" "/opt/eclipse/kura/user/snapshots/snapshot_0.xml"
+    if [ ! -d "/opt/eclipse/kura/user/snapshots.d/" ]; then
+        mkdir /opt/eclipse/kura/user/snapshots.d/
+    fi
+
+    mv "/opt/eclipse/kura/install/snapshot_0.xml" "/opt/eclipse/kura/user/snapshots.d/snapshot_0.xml"
     if [ ${IS_NETWORKING_PROFILE} = "true" ]; then
         python3 "/opt/eclipse/kura/install/customize_snapshot.py" "--networking_profile"
     else

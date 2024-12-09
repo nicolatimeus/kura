@@ -93,7 +93,7 @@ ${INSTALL_DIR}/kura/.data/manage_kura_users.sh -i
 bash "${INSTALL_DIR}/kura/install/customize-installation.sh"${IS_NETWORKING_PROFILE}
 
 # copy snapshot_0.xml
-cp ${INSTALL_DIR}/kura/user/snapshots/snapshot_0.xml ${INSTALL_DIR}/kura/.data/snapshot_0.xml
+cp ${INSTALL_DIR}/kura/user/snapshots.d/snapshot_0.xml ${INSTALL_DIR}/kura/.data/snapshot_0.xml
 
 # set up default firewall configuration
 if [ ! -d /etc/sysconfig ]; then

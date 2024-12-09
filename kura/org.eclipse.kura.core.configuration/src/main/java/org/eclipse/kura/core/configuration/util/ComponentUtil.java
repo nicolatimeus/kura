@@ -17,10 +17,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLStreamException;
@@ -541,5 +544,27 @@ public class ComponentUtil {
             return new Password(cryptoService.encryptAes(password.getPassword()));
         }
         return password;
+    }
+
+    public static Map<String, ComponentConfiguration> toMap(final List<ComponentConfiguration> configs) {
+        return configs.stream().collect(Collectors.toMap(ComponentConfiguration::getPid, Function.identity()));
+    }
+
+    public static void merge(final Map<String, ComponentConfiguration> configs,
+            final Collection<ComponentConfiguration> toBeMerged) {
+        for (final ComponentConfiguration c : toBeMerged) {
+            merge(configs, c);
+        }
+    }
+
+    public static void merge(final Map<String, ComponentConfiguration> configs, final ComponentConfiguration c) {
+        configs.compute(c.getPid(), (k, v) -> {
+            if (v == null) {
+                return c;
+            } else {
+                v.getConfigurationProperties().putAll(c.getConfigurationProperties());
+                return v;
+            }
+        });
     }
 }

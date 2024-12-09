@@ -30,7 +30,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -385,6 +384,25 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
             throw new KuraException(KuraErrorCode.INVALID_PARAMETER, "pid " + pid + " already exists");
         }
 
+        createFactoryConfigurationInternal(factoryPid, pid, properties);
+
+        final Map<String, Object> userProperties = new HashMap<>();
+        if (properties != null) {
+            userProperties.putAll(properties);
+        }
+
+        userProperties.put(ConfigurationService.KURA_SERVICE_PID, pid);
+        userProperties.put(ConfigurationAdmin.SERVICE_FACTORYPID, factoryPid);
+
+        addToUncommittedChanges(pid, userProperties);
+
+        if (takeSnapshot) {
+            snapshot();
+        }
+    }
+
+    private void createFactoryConfigurationInternal(String factoryPid, String pid, Map<String, Object> properties)
+            throws KuraException {
         try {
             // Second argument in createFactoryConfiguration is a bundle location. If left null the new bundle location
             // will be bound to the location of the first bundle that registers a Managed Service Factory with a
@@ -412,19 +430,6 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
 
             this.pendingDeletePids.remove(pid);
 
-            final Map<String, Object> userProperties = new HashMap<>();
-            if (properties != null) {
-                userProperties.putAll(properties);
-            }
-
-            userProperties.put(ConfigurationService.KURA_SERVICE_PID, pid);
-            userProperties.put(ConfigurationAdmin.SERVICE_FACTORYPID, factoryPid);
-
-            addToUncommittedChanges(pid, userProperties);
-
-            if (takeSnapshot) {
-                snapshot();
-            }
         } catch (IOException e) {
             throw new KuraException(KuraErrorCode.CONFIGURATION_ERROR, e,
                     "Cannot create component instance for factory " + factoryPid);
@@ -485,23 +490,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
     public synchronized long snapshot() throws KuraException {
         logger.info("Writing snapshot...");
 
-        final Map<String, ComponentConfiguration> configs = this.loadLatestSnapshotConfigurations().stream()
-                .collect(Collectors.toMap(ComponentConfiguration::getPid, Function.identity()));
-
-        configs.keySet().removeIf(this.pendingDeletePids::contains);
-
-        for (final Entry<String, ComponentConfiguration> e : this.uncommittedChanges.entrySet()) {
-            configs.compute(e.getKey(), (k, v) -> {
-                if (v == null) {
-                    return e.getValue();
-                } else {
-                    v.getConfigurationProperties().putAll(e.getValue().getConfigurationProperties());
-                    return v;
-                }
-            });
-        }
-
-        final long sid = this.snapshotStore.saveSnapshot(configs.values());
+        final long sid = this.snapshotStore.saveSnapshot(this.uncommittedChanges, this.pendingDeletePids);
 
         this.pendingDeletePids.clear();
         this.uncommittedChanges.clear();
@@ -796,20 +785,17 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
         boolean snapshotOnConfirmation = false;
         List<Throwable> causes = new ArrayList<>();
 
-        List<ComponentConfiguration> configs = buildCurrentConfiguration(configsToUpdate);
+        for (ComponentConfiguration configToUpdate : configsToUpdate) {
+            if (!allActivatedPids.contains(configToUpdate.getPid())) {
+                continue;
+            }
 
-        for (ComponentConfiguration config : configs) {
-            for (ComponentConfiguration configToUpdate : configsToUpdate) {
-                if (config.getPid().equals(configToUpdate.getPid())) {
-                    try {
-                        updateConfigurationInternal(config.getPid(), config.getConfigurationProperties(),
-                                snapshotOnConfirmation);
-                    } catch (KuraException e) {
-                        logger.warn("Error during updateConfigurations for component " + config.getPid(), e);
-                        causes.add(e);
-                    }
-                    break;
-                }
+            try {
+                updateConfigurationInternal(configToUpdate.getPid(), configToUpdate.getConfigurationProperties(),
+                        snapshotOnConfirmation);
+            } catch (KuraException e) {
+                logger.warn("Error during updateConfigurations for component " + configToUpdate.getPid(), e);
+                causes.add(e);
             }
         }
 
@@ -826,14 +812,13 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
                 logger.info("Creating configuration with pid: {} and factory pid: {}", pid, factoryPid);
                 try {
                     createFactoryConfiguration(factoryPid, pid, properties, false);
-                    configs.add(config);
                 } catch (KuraException e) {
                     logger.warn("Error creating configuration with pid: {} and factory pid: {}", pid, factoryPid, e);
                 }
             }
         }
 
-        if (takeSnapshot && configs != null && !configs.isEmpty()) {
+        if (takeSnapshot) {
             snapshot();
         }
 
@@ -1114,7 +1099,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
                         String pid = config.getPid();
                         logger.info("Creating configuration with pid: {} and factory pid: {}", pid, factoryPid);
                         try {
-                            createFactoryConfiguration(factoryPid, pid, props, false);
+                            createFactoryConfigurationInternal(factoryPid, pid, props);
                         } catch (KuraException e) {
                             logger.warn("Error creating configuration with pid: {} and factory pid: {}", pid,
                                     factoryPid, e);
@@ -1193,6 +1178,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
                 logger.info("merge with running failed!");
                 throw new KuraException(KuraErrorCode.CONFIGURATION_UPDATE, e, pid);
             }
+        } else {
+            mergedProperties.putAll(this.getSelfConfiguringComponentConfiguration(pid).getConfigurationProperties());
         }
 
         mergedProperties.putAll(properties);

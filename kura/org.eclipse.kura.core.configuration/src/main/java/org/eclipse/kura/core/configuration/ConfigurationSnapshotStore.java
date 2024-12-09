@@ -2,6 +2,7 @@ package org.eclipse.kura.core.configuration;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.kura.KuraException;
@@ -13,5 +14,8 @@ public interface ConfigurationSnapshotStore {
 
     public List<ComponentConfiguration> loadSnapshot(final long id) throws KuraException;
 
-    public long saveSnapshot(final Collection<? extends ComponentConfiguration> configs) throws KuraException;
+    public long saveSnapshot(final Collection<? extends ComponentConfiguration> snapshotContent) throws KuraException;
+
+    public long saveSnapshot(final Map<String, ComponentConfiguration> modifiedConfigurations,
+            final Set<String> deletedPids) throws KuraException;
 }

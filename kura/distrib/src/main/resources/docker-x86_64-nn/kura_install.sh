@@ -44,7 +44,7 @@ systemctl stop apparmor
 systemctl disable apparmor
 
 #copy snapshot_0.xml
-cp ${INSTALL_DIR}/kura/user/snapshots/snapshot_0.xml ${INSTALL_DIR}/kura/.data/snapshot_0.xml
+cp ${INSTALL_DIR}/kura/user/snapshots.d/snapshot_0.xml ${INSTALL_DIR}/kura/.data/snapshot_0.xml
 
 #disable NTP service
 if command -v timedatectl > /dev/null ;

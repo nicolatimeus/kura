@@ -11,11 +11,19 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -73,7 +81,7 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
     }
 
     @Override
-    public Set<Long> getSnapshots() {
+    public SortedSet<Long> getSnapshots() {
         // keeps the list of snapshots ordered
         TreeSet<Long> ids = new TreeSet<>();
         String configDir = this.systemService.getKuraSnapshotsDirectory();
@@ -90,20 +98,35 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
                 }
             }
         }
+        ids.add(0L);
         return ids;
     }
 
     @Override
     public List<ComponentConfiguration> loadSnapshot(final long id) throws KuraException {
 
-        List<ComponentConfiguration> configs = null;
+        List<ComponentConfiguration> snapshotConfigs;
 
-        XmlComponentConfigurations xmlConfigs = loadEncryptedSnapshotFileContent(id);
-        if (xmlConfigs != null) {
-            configs = xmlConfigs.getConfigurations();
+        try {
+            final XmlComponentConfigurations xmlConfigs = loadEncryptedSnapshotFileContent(id);
+            snapshotConfigs = xmlConfigs.getConfigurations();
+        } catch (final KuraException e) {
+            if (e.getCode() == KuraErrorCode.CONFIGURATION_SNAPSHOT_NOT_FOUND) {
+                snapshotConfigs = Collections.emptyList();
+            } else {
+                throw e;
+            }
         }
 
-        return configs;
+        final Map<String, ComponentConfiguration> dropinConfigurations = loadDropinConfigurations();
+
+        if (!dropinConfigurations.isEmpty()) {
+            ComponentUtil.merge(dropinConfigurations, snapshotConfigs);
+
+            return new ArrayList<>(dropinConfigurations.values());
+        } else {
+            return snapshotConfigs;
+        }
     }
 
     @Override
@@ -120,10 +143,9 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
         long sid = new Date().getTime();
 
         // Do not save the snapshot in the past
-        Set<Long> snapshotIDs = getSnapshots();
+        SortedSet<Long> snapshotIDs = getSnapshots();
         if (snapshotIDs != null && !snapshotIDs.isEmpty()) {
-            Long[] snapshots = snapshotIDs.toArray(new Long[] {});
-            Long lastestID = snapshots[snapshotIDs.size() - 1];
+            Long lastestID = snapshotIDs.last();
 
             if (lastestID != null && sid <= lastestID) {
                 logger.warn("Snapshot ID: {} is in the past. Adjusting ID to: {} + 1", sid, lastestID);
@@ -137,6 +159,26 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
         // Garbage Collector for number of Snapshots Saved
         garbageCollectionOldSnapshots();
         return sid;
+    }
+
+    @Override
+    public long saveSnapshot(Map<String, ComponentConfiguration> modifiedConfigurations, Set<String> deletedPids)
+            throws KuraException {
+
+        final Optional<Long> latestSnapshot = Optional.ofNullable(getSnapshots()).filter(s -> !s.isEmpty())
+                .map(SortedSet::last);
+
+        if (latestSnapshot.isPresent() && getSnapshotFile(latestSnapshot.get()).exists()) {
+            final Map<String, ComponentConfiguration> latestSnapshotConfigs = ComponentUtil
+                    .toMap(loadEncryptedSnapshotFileContent(latestSnapshot.get()).getConfigurations());
+
+            ComponentUtil.merge(latestSnapshotConfigs, modifiedConfigurations.values());
+            latestSnapshotConfigs.keySet().removeIf(deletedPids::contains);
+
+            return saveSnapshot(latestSnapshotConfigs.values());
+        } else {
+            return saveSnapshot(modifiedConfigurations.values());
+        }
     }
 
     protected <T> T unmarshal(final InputStream in, final Class<T> clazz) throws KuraException {
@@ -159,7 +201,7 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
         String configDir = this.systemService.getKuraSnapshotsDirectory();
 
         if (configDir == null) {
-            return null;
+            throw new IllegalStateException("snapshot directory is not set");
         }
 
         StringBuilder sbSnapshot = new StringBuilder(configDir);
@@ -171,12 +213,11 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
 
     private boolean allSnapshotsUnencrypted() {
         Set<Long> snapshotIDs = getSnapshots();
-        if (snapshotIDs == null || snapshotIDs.isEmpty()) {
+        if (snapshotIDs.isEmpty()) {
             return false;
         }
-        Long[] snapshots = snapshotIDs.toArray(new Long[] {});
 
-        for (Long snapshot : snapshots) {
+        for (Long snapshot : snapshotIDs) {
             try (final FileInputStream in = new FileInputStream(getSnapshotFile(snapshot))) {
                 unmarshal(in, XmlComponentConfigurations.class);
             } catch (Exception e) {
@@ -189,9 +230,6 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
 
     private XmlComponentConfigurations loadEncryptedSnapshotFileContent(long snapshotID) throws KuraException {
         File fSnapshot = getSnapshotFile(snapshotID);
-        if (fSnapshot == null) {
-            throw new KuraException(KuraErrorCode.CONFIGURATION_SNAPSHOT_NOT_FOUND, "null");
-        }
 
         InputStream decryptedStream;
         try {
@@ -200,42 +238,43 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
             throw new KuraException(KuraErrorCode.CONFIGURATION_SNAPSHOT_NOT_FOUND, fSnapshot.getAbsolutePath());
         }
 
-        XmlComponentConfigurations xmlConfigs = null;
-
         try (final InputStream in = decryptedStream) {
-            xmlConfigs = unmarshal(in, XmlComponentConfigurations.class);
-        } catch (Exception e) {
-            logger.warn("Error parsing xml", e);
+            return unmarshal(in, XmlComponentConfigurations.class);
+        } catch (IOException e) {
+            throw new KuraException(KuraErrorCode.IO_ERROR, e);
         }
-
-        return xmlConfigs;
     }
 
     private void encryptPlainSnapshots() throws KuraException, IOException {
         Set<Long> snapshotIDs = getSnapshots();
-        if (snapshotIDs == null || snapshotIDs.isEmpty()) {
-            return;
-        }
-        Long[] snapshots = snapshotIDs.toArray(new Long[] {});
 
-        for (Long snapshot : snapshots) {
+        for (Long snapshot : snapshotIDs) {
             File fSnapshot = getSnapshotFile(snapshot);
             if (fSnapshot == null) {
                 throw new KuraException(KuraErrorCode.CONFIGURATION_ERROR, snapshot);
             }
 
-            final XmlComponentConfigurations xmlConfigs;
-            try (final InputStream in = new FileInputStream(fSnapshot)) {
-                xmlConfigs = unmarshal(in, XmlComponentConfigurations.class);
-            } catch (final FileNotFoundException e) {
-                throw new KuraException(KuraErrorCode.CONFIGURATION_ERROR, snapshot);
-            }
+            final List<ComponentConfiguration> configs = loadUnencryptedSnapshot(fSnapshot);
 
-            ComponentUtil.encryptConfigs(xmlConfigs.getConfigurations(), this.cryptoService);
+            final XmlComponentConfigurations xmlConfigs = new XmlComponentConfigurations();
+            xmlConfigs.setConfigurations(configs);
 
             // Writes an encrypted snapshot with encrypted passwords.
             writeSnapshot(snapshot, xmlConfigs);
         }
+    }
+
+    private List<ComponentConfiguration> loadUnencryptedSnapshot(File snapshotFile) throws KuraException, IOException {
+        final XmlComponentConfigurations xmlConfigs;
+        try (final InputStream in = new FileInputStream(snapshotFile)) {
+            xmlConfigs = unmarshal(in, XmlComponentConfigurations.class);
+        } catch (final FileNotFoundException e) {
+            throw new KuraException(KuraErrorCode.CONFIGURATION_ERROR, snapshotFile);
+        }
+
+        ComponentUtil.encryptConfigs(xmlConfigs.getConfigurations(), this.cryptoService);
+
+        return xmlConfigs.getConfigurations();
     }
 
     private void writeSnapshot(long sid, XmlComponentConfigurations conf) throws KuraException {
@@ -286,6 +325,45 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
                 logger.warn("Snapshots Garbage Collector. Deletion failed for {}", fSnapshotPath, e);
             }
         }
+    }
+
+    private final Map<String, ComponentConfiguration> loadDropinConfigurations() throws KuraException {
+        final String configDir = this.systemService.getKuraSnapshotsDirectory();
+
+        if (configDir == null) {
+            return Collections.emptyMap();
+        }
+
+        final File dropinsDir = new File(configDir + ".d");
+
+        if (!dropinsDir.isDirectory()) {
+            return Collections.emptyMap();
+        }
+
+        final SortedSet<File> files = new TreeSet<>(Comparator.comparing(Function.<File>identity()).reversed());
+
+        try {
+            Files.list(dropinsDir.toPath()).map(Path::toFile).filter(f -> f.getName().endsWith(".xml"))
+                    .forEach(files::add);
+        } catch (final IOException e) {
+            throw new KuraException(KuraErrorCode.IO_ERROR, e);
+        }
+
+        final Map<String, ComponentConfiguration> configs = new HashMap<>();
+
+        for (final File f : files) {
+            try {
+                final List<ComponentConfiguration> snapshot = loadUnencryptedSnapshot(f);
+
+                ComponentUtil.merge(configs, snapshot);
+
+            } catch (final Exception e) {
+                logger.warn("failed to load dropin {}", f, e);
+            }
+        }
+
+        return configs;
+
     }
 
 }

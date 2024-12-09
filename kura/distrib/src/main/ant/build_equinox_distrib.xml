@@ -450,7 +450,7 @@ fi]]>
 
             <zipfileset
                 file="${project.build.directory}/${build.output.name}/snapshot_0.xml"
-                prefix="${build.output.name}/${snapshots.folder}/" />
+                prefix="${build.output.name}/${snapshots.folder}.d/" />
 
             <zipfileset
                 file="${project.build.directory}/${build.output.name}/config.ini"

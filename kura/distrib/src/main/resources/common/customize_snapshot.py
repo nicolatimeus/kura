@@ -27,7 +27,7 @@ def main():
         ]
     )
     
-    SNAPSHOT_FILENAME = "/opt/eclipse/kura/user/snapshots/snapshot_0.xml"
+    SNAPSHOT_FILENAME = "/opt/eclipse/kura/user/snapshots.d/snapshot_0.xml"
     
     parser = argparse.ArgumentParser(description="Customize snapshot_0.xml file", usage='%(prog)s [--networking_profile]')
     parser.add_argument('--networking_profile', action='store_true', help='Specifies if this is a profile with or without networking')
