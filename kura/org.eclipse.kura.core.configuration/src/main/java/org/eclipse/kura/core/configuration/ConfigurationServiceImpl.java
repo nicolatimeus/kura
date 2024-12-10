@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -77,7 +78,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Implementation of ConfigurationService.
  */
-public class ConfigurationServiceImpl implements ConfigurationService, OCDService {
+public class ConfigurationServiceImpl implements ConfigurationService, OCDService, ConfigurationSnapshotStore.Listener {
 
     private static final String GETTING_CONFIGURATION_ERROR = "Error getting Configuration for component: {}. Ignoring it.";
 
@@ -190,6 +191,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
             throw new ComponentException("Error loading latest snapshot", e);
         }
 
+        this.snapshotStore.registerListener(this);
+
         this.bundleTracker = new ComponentMetaTypeBundleTracker(this.ctx.getBundleContext(), this);
         this.bundleTracker.open();
     }
@@ -250,6 +253,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
 
     protected void deactivate() {
         logger.info("deactivate...");
+
+        this.snapshotStore.unregisterListener(this);
 
         if (this.bundleTracker != null) {
             this.bundleTracker.close();
@@ -599,7 +604,11 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
             throw new KuraPartialSuccessException("Rollback", causes);
         }
 
-        this.snapshotStore.saveSnapshot(snapshotConfigs.values());
+        final SortedSet<Long> snapshotIds = this.snapshotStore.getSnapshots();
+
+        if (snapshotIds.isEmpty() || id != snapshotIds.last()) {
+            this.snapshotStore.saveSnapshot(snapshotConfigs.values());
+        }
     }
 
     private void rollbackConfigurationInternal(final ComponentConfiguration snapshotConfig,
@@ -1535,6 +1544,23 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
 
     }
 
+    @Override
+    public synchronized void onSnapshotsChanged() {
+        try {
+            final SortedSet<Long> snapshotIds = this.snapshotStore.getSnapshots();
+
+            if (snapshotIds.isEmpty()) {
+                return;
+            }
+
+            logger.info("reloading configuration after snapshot change...");
+            rollback(snapshotIds.last());
+            logger.info("reloading configuration after snapshot change...done");
+        } catch (final Exception e) {
+            logger.warn("unexpected exception while reloading configuration after snapshot change", e);
+        }
+    }
+
     private static final class TrackedComponentFactory {
 
         private final String factoryPid;
@@ -1583,4 +1609,5 @@ public class ConfigurationServiceImpl implements ConfigurationService, OCDServic
             return true;
         }
     }
+
 }

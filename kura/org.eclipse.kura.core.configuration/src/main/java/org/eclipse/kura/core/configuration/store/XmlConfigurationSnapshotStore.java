@@ -23,10 +23,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
@@ -51,6 +53,9 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
     private Unmarshaller xmlUnmarshaller;
     private SystemService systemService;
     private CryptoService cryptoService;
+
+    private final List<Listener> listeners = new CopyOnWriteArrayList<>();
+    private Optional<DropinFolderWatcher> watcher = Optional.empty();
 
     public void setXmlMarshaller(final Marshaller marshaller) {
         this.xmlMarshaller = marshaller;
@@ -78,6 +83,31 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
             }
         }
 
+        final Optional<File> dropinsDir = getDropinDirectory();
+
+        if (dropinsDir.isPresent()) {
+
+            try {
+                this.watcher = Optional.of(new DropinFolderWatcher(this::dispatchSnapshotsChanged, dropinsDir.get()));
+            } catch (final Exception e) {
+                logger.warn("Failed to initialise dropin directory monitoring", e);
+            }
+
+        }
+
+    }
+
+    public void deactivate() {
+
+        final Optional<DropinFolderWatcher> currentWatcher = this.watcher;
+
+        if (currentWatcher.isPresent()) {
+            try {
+                currentWatcher.get().close();
+            } catch (Exception e) {
+                logger.warn("Failed to shutdown dropin directory monitoring", e);
+            }
+        }
     }
 
     @Override
@@ -327,24 +357,33 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
         }
     }
 
-    private final Map<String, ComponentConfiguration> loadDropinConfigurations() throws KuraException {
+    private Optional<File> getDropinDirectory() {
         final String configDir = this.systemService.getKuraSnapshotsDirectory();
 
         if (configDir == null) {
-            return Collections.emptyMap();
+            return Optional.empty();
         }
 
-        final File dropinsDir = new File(configDir + ".d");
+        final File result = new File(configDir + ".d");
 
-        if (!dropinsDir.isDirectory()) {
+        if (!result.exists()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(result);
+    }
+
+    private final Map<String, ComponentConfiguration> loadDropinConfigurations() throws KuraException {
+        final Optional<File> dropinsDir = getDropinDirectory();
+
+        if (!dropinsDir.isPresent()) {
             return Collections.emptyMap();
         }
 
         final SortedSet<File> files = new TreeSet<>(Comparator.comparing(Function.<File>identity()).reversed());
 
-        try {
-            Files.list(dropinsDir.toPath()).map(Path::toFile).filter(f -> f.getName().endsWith(".xml"))
-                    .forEach(files::add);
+        try (final Stream<Path> dropinFolderFiles = Files.list(dropinsDir.get().toPath())) {
+            dropinFolderFiles.map(Path::toFile).filter(f -> f.getName().endsWith(".xml")).forEach(files::add);
         } catch (final IOException e) {
             throw new KuraException(KuraErrorCode.IO_ERROR, e);
         }
@@ -356,7 +395,6 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
                 final List<ComponentConfiguration> snapshot = loadUnencryptedSnapshot(f);
 
                 ComponentUtil.merge(configs, snapshot);
-
             } catch (final Exception e) {
                 logger.warn("failed to load dropin {}", f, e);
             }
@@ -364,6 +402,26 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
 
         return configs;
 
+    }
+
+    @Override
+    public void registerListener(Listener listener) {
+        listeners.add(listener);
+    }
+
+    @Override
+    public void unregisterListener(Listener listener) {
+        listeners.remove(listener);
+    }
+
+    private void dispatchSnapshotsChanged() {
+        for (final Listener listener : this.listeners) {
+            try {
+                listener.onSnapshotsChanged();
+            } catch (final Exception e) {
+                logger.warn("unexpected exception to dispatch snapshot changed event", e);
+            }
+        }
     }
 
 }
