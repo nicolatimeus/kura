@@ -92,9 +92,7 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
             } catch (final Exception e) {
                 logger.warn("Failed to initialise dropin directory monitoring", e);
             }
-
         }
-
     }
 
     public void deactivate() {
@@ -280,9 +278,6 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
 
         for (Long snapshot : snapshotIDs) {
             File fSnapshot = getSnapshotFile(snapshot);
-            if (fSnapshot == null) {
-                throw new KuraException(KuraErrorCode.CONFIGURATION_ERROR, snapshot);
-            }
 
             final List<ComponentConfiguration> configs = loadUnencryptedSnapshot(fSnapshot);
 
@@ -309,9 +304,6 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
 
     private void writeSnapshot(long sid, XmlComponentConfigurations conf) throws KuraException {
         File fSnapshot = getSnapshotFile(sid);
-        if (fSnapshot == null) {
-            throw new KuraException(KuraErrorCode.CONFIGURATION_SNAPSHOT_NOT_FOUND);
-        }
 
         try (final FileOutputStream fos = new FileOutputStream(fSnapshot);
                 final OutputStream encrypted = this.cryptoService.encryptAes(fos)) {
@@ -341,7 +333,7 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
             // one.
             long sid = sids.pollFirst();
             File fSnapshot = getSnapshotFile(sid);
-            if (sid == 0 || fSnapshot == null) {
+            if (sid == 0) {
                 continue;
             }
 
@@ -373,6 +365,16 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
         return Optional.of(result);
     }
 
+    protected List<ComponentConfiguration> loadConfigurationDropin(final File dropinFile) throws KuraException {
+        try {
+            return loadUnencryptedSnapshot(dropinFile);
+        } catch (KuraException e) {
+            throw e;
+        } catch (IOException e) {
+            throw new KuraException(KuraErrorCode.IO_ERROR, e);
+        }
+    }
+
     private final Map<String, ComponentConfiguration> loadDropinConfigurations() throws KuraException {
         final Optional<File> dropinsDir = getDropinDirectory();
 
@@ -392,7 +394,7 @@ public class XmlConfigurationSnapshotStore implements ConfigurationSnapshotStore
 
         for (final File f : files) {
             try {
-                final List<ComponentConfiguration> snapshot = loadUnencryptedSnapshot(f);
+                final List<ComponentConfiguration> snapshot = loadConfigurationDropin(f);
 
                 ComponentUtil.merge(configs, snapshot);
             } catch (final Exception e) {

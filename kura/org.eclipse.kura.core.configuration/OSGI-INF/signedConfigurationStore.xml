@@ -13,8 +13,8 @@
 	 Eurotech
 
 -->
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" activate="activate" deactivate="deactivate" enabled="false" immediate="true" name="org.eclipse.kura.core.configuration.store.XmlConfigurationSnapshotStore">
-   <implementation class="org.eclipse.kura.core.configuration.store.XmlConfigurationSnapshotStore"/>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" activate="activate" deactivate="deactivate" enabled="true" immediate="true" name="org.eclipse.kura.core.configuration.store.SignedXmlConfigurationSnapshotStore">
+   <implementation class="org.eclipse.kura.core.configuration.store.SignedXmlConfigurationSnapshotStore"/>
    <property name="service.pid" value="org.eclipse.kura.core.configuration.store.XmlConfigurationSnapshotStore"/>
    <reference name="SystemService"
               bind="setSystemService"
@@ -41,4 +41,5 @@
    <service>
       <provide interface="org.eclipse.kura.core.configuration.ConfigurationSnapshotStore"/>
    </service>
+   <reference bind="setKeystoreService" cardinality="0..1" interface="org.eclipse.kura.security.keystore.KeystoreService" name="KeystoreService" policy="dynamic" target="(kura.service.pid=SignatureVerification)"/>
 </scr:component>
