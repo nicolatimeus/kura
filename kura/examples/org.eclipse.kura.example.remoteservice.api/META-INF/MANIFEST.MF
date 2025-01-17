@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: org.eclipse.kura.example.remoteservice.api
+Bundle-SymbolicName: org.eclipse.kura.example.remoteservice.api;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Export-Package: org.eclipse.kura.example.remoteservice.api;version="1.0.0"
+Import-Package: org.osgi.annotation.versioning;version="1.1.2";resolution:=optional
+Bundle-Vendor: Eclipse Kura
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
+Bundle-ActivationPolicy: lazy

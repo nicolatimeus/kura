@@ -35,6 +35,7 @@
         <kura.build.version>${maven.build.timestamp}</kura.build.version>
         <skip.can.example>true</skip.can.example>
         <check.plugins.exist.remote>false</check.plugins.exist.remote>
+        <bnd.version>7.1.0</bnd.version>
 
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -98,6 +99,9 @@
         <module>org.eclipse.kura.example.tamper.detection</module>
         <module>org.eclipse.kura.example.rest.authentication.provider</module>
         <module>org.eclipse.kura.example.identity.configuration.extension</module>
+        <module>org.eclipse.kura.example.remoteservice.api</module>
+        <module>org.eclipse.kura.example.remoteservice.consumer</module>
+        <module>org.eclipse.kura.example.remoteservice.provider</module>
         <module>test</module>
     </modules>
 
