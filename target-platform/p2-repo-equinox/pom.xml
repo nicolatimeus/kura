@@ -254,6 +254,11 @@
                                     <artifactId>org.apache.felix.gogo.shell</artifactId>
                                     <version>${org.apache.felix.gogo.shell.version}</version>
                                 </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.eclipse.platform</groupId>
+                                    <artifactId>org.eclipse.equinox.concurrent</artifactId>
+                                    <version>${org.eclipse.equinox.concurrent.version}</version>
+                                </artifactItem>
                             </artifactItems>
                             <stripVersion>false</stripVersion>
                             <outputDirectory>${project.basedir}/target/source/plugins</outputDirectory>
