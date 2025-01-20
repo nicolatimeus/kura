@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: org.eclipse.kura.remoteservice.discovery.fs.provider
+Bundle-SymbolicName: org.eclipse.kura.remoteservice.discovery.fs.provider;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Import-Package: com.google.gson;version="[2.9.0,3.0.0)",
+ org.apache.aries.rsa.spi;version="1.1.0",
+ org.eclipse.kura.rest.configuration.api;version="[1.1.0,2.0.0)",
+ org.eclipse.kura.system;version="[1.9.0,2.0.0)",
+ org.osgi.framework;version="[1.10.0,2.0.0)",
+ org.osgi.service.component;version="[1.5.0,2.0.0)",
+ org.osgi.service.remoteserviceadmin;version="[1.1.0,2.0.0)",
+ org.slf4j;version="[1.7.0,2.0.0)"
+Bundle-Vendor: Eclipse Kura
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
+Bundle-ClassPath: .
+Bundle-ActivationPolicy: lazy
+Provide-Capability: osgi.remoteserviceadmin.discovery;version:Version=
+ "1.1.0";protocols:List<String>="kura.fs"
+Service-Component: OSGI-INF/*.xml

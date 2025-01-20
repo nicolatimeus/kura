@@ -864,71 +864,31 @@
                                     <artifactId>org.osgi.service.metatype.annotations</artifactId>
                                     <version>${org.osgi.service.metatype.annotations.version}</version>
                                 </artifactItem>
-                                <!-- ECF deps -->
+                                <!-- Aries deps -->
                                 <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.ecf</artifactId>
-                                <version>${org.eclipse.ecf.version}</version>
+                                    <groupId>org.apache.aries.rsa</groupId>
+                                    <artifactId>org.apache.aries.rsa.spi</artifactId>
+                                    <version>${org.apache.aries.rsa.spi.version}</version>
                                 </artifactItem>
                                 <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.ecf.discovery</artifactId>
-                                <version>${org.eclipse.ecf.discovery.version}</version>
+                                    <groupId>org.apache.aries.rsa</groupId>
+                                    <artifactId>org.apache.aries.rsa.core</artifactId>
+                                    <version>${org.apache.aries.rsa.core.version}</version>
                                 </artifactItem>
                                 <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.ecf.identity</artifactId>
-                                <version>${org.eclipse.ecf.identity.version}</version>
+                                    <groupId>org.apache.aries.rsa</groupId>
+                                    <artifactId>org.apache.aries.rsa.topology-manager</artifactId>
+                                    <version>${org.apache.aries.rsa.topology-manager.version}</version>
                                 </artifactItem>
                                 <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.ecf.osgi.services.distribution</artifactId>
-                                <version>${org.eclipse.ecf.osgi.services.distribution.version}</version>
+                                    <groupId>org.apache.aries.rsa</groupId>
+                                    <artifactId>org.apache.aries.rsa.eapub</artifactId>
+                                    <version>${org.apache.aries.rsa.eapub.version}</version>
                                 </artifactItem>
                                 <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.ecf.osgi.services.remoteserviceadmin</artifactId>
-                                <version>${org.eclipse.ecf.osgi.services.remoteserviceadmin.version}</version>
-                                </artifactItem>
-                                <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.ecf.osgi.services.remoteserviceadmin.proxy</artifactId>
-                                <version>${org.eclipse.ecf.osgi.services.remoteserviceadmin.proxy.version}</version>
-                                </artifactItem>
-                                <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.ecf.provider</artifactId>
-                                <version>${org.eclipse.ecf.provider.version}</version>
-                                </artifactItem>
-                                <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.ecf.provider.jmdns</artifactId>
-                                <version>${org.eclipse.ecf.provider.jmdns.version}</version>
-                                </artifactItem>
-                                <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.ecf.provider.remoteservice</artifactId>
-                                <version>${org.eclipse.ecf.provider.remoteservice.version}</version>
-                                </artifactItem>
-                                <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.ecf.remoteservice</artifactId>
-                                <version>${org.eclipse.ecf.remoteservice.version}</version>
-                                </artifactItem>
-                                <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.ecf.remoteservice.asyncproxy</artifactId>
-                                <version>${org.eclipse.ecf.remoteservice.asyncproxy.version}</version>
-                                </artifactItem>
-                                <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.ecf.sharedobject</artifactId>
-                                <version>${org.eclipse.ecf.sharedobject.version}</version>
-                                </artifactItem>
-                                <artifactItem>
-                                <groupId>org.eclipse.ecf</groupId>
-                                <artifactId>org.eclipse.osgi.services.remoteserviceadmin</artifactId>
-                                <version>${org.eclipse.osgi.services.remoteserviceadmin.version}</version>
+                                    <groupId>org.apache.aries.rsa.provider</groupId>
+                                    <artifactId>org.apache.aries.rsa.provider.tcp</artifactId>
+                                    <version>${org.apache.aries.rsa.provider.tcp.version}</version>
                                 </artifactItem>
                             </artifactItems>
                             <stripVersion>false</stripVersion>

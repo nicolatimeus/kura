@@ -2344,84 +2344,42 @@ fi]]>
             <param name="start.level" value="5" />
             <param name="start" value="" />
         </antcall>
-        <!-- ECF deps -->
         <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.ecf" />
-            <param name="bundle.version" value="${org.eclipse.ecf.version}" />
+            <param name="bundle.name" value="org.eclipse.kura.remoteservice.discovery.fs.provider" />
+            <param name="bundle.version" value="${org.eclipse.kura.remoteservice.discovery.fs.provider.version}" />
+            <param name="start.level" value="5" />
+            <param name="start" value="s" />
+        </antcall>
+        <!-- Aries deps -->
+        <antcall target="install-plugin">
+            <param name="bundle.name" value="org.apache.aries.rsa.spi" />
+            <param name="bundle.version" value="${org.apache.aries.rsa.spi.version}" />
             <param name="start.level" value="5" />
             <param name="start" value="" />
         </antcall>
         <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.ecf.discovery" />
-            <param name="bundle.version" value="${org.eclipse.ecf.discovery.version}" />
-            <param name="start.level" value="5" />
-            <param name="start" value="" />
-        </antcall>
-        <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.ecf.identity" />
-            <param name="bundle.version" value="${org.eclipse.ecf.identity.version}" />
-            <param name="start.level" value="5" />
-            <param name="start" value="" />
-        </antcall>
-        <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.ecf.osgi.services.distribution" />
-            <param name="bundle.version" value="${org.eclipse.ecf.osgi.services.distribution.version}" />
+            <param name="bundle.name" value="org.apache.aries.rsa.core" />
+            <param name="bundle.version" value="${org.apache.aries.rsa.core.version}" />
             <param name="start.level" value="5" />
             <param name="start" value="s" />
         </antcall>
         <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.ecf.osgi.services.remoteserviceadmin" />
-            <param name="bundle.version" value="${org.eclipse.ecf.osgi.services.remoteserviceadmin.version}" />
-            <param name="start.level" value="5" />
-            <param name="start" value="" />
-        </antcall>
-        <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.ecf.osgi.services.remoteserviceadmin.proxy" />
-            <param name="bundle.version" value="${org.eclipse.ecf.osgi.services.remoteserviceadmin.proxy.version}" />
-            <param name="start.level" value="5" />
-            <param name="start" value="" />
-        </antcall>
-        <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.ecf.provider" />
-            <param name="bundle.version" value="${org.eclipse.ecf.provider.version}" />
-            <param name="start.level" value="5" />
-            <param name="start" value="" />
-        </antcall>
-        <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.ecf.provider.jmdns" />
-            <param name="bundle.version" value="${org.eclipse.ecf.provider.jmdns.version}" />
+            <param name="bundle.name" value="org.apache.aries.rsa.topology-manager" />
+            <param name="bundle.version" value="${org.apache.aries.rsa.topology-manager.version}" />
             <param name="start.level" value="5" />
             <param name="start" value="s" />
         </antcall>
         <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.ecf.provider.remoteservice" />
-            <param name="bundle.version" value="${org.eclipse.ecf.provider.remoteservice.version}" />
+            <param name="bundle.name" value="org.apache.aries.rsa.eapub" />
+            <param name="bundle.version" value="${org.apache.aries.rsa.eapub.version}" />
             <param name="start.level" value="5" />
             <param name="start" value="" />
         </antcall>
         <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.ecf.remoteservice" />
-            <param name="bundle.version" value="${org.eclipse.ecf.remoteservice.version}" />
+            <param name="bundle.name" value="org.apache.aries.rsa.provider.tcp" />
+            <param name="bundle.version" value="${org.apache.aries.rsa.provider.tcp.version}" />
             <param name="start.level" value="5" />
-            <param name="start" value="" />
-        </antcall>
-        <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.ecf.remoteservice.asyncproxy" />
-            <param name="bundle.version" value="${org.eclipse.ecf.remoteservice.asyncproxy.version}" />
-            <param name="start.level" value="5" />
-            <param name="start" value="" />
-        </antcall>
-        <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.ecf.sharedobject" />
-            <param name="bundle.version" value="${org.eclipse.ecf.sharedobject.version}" />
-            <param name="start.level" value="5" />
-            <param name="start" value="" />
-        </antcall>
-        <antcall target="install-plugin">
-            <param name="bundle.name" value="org.eclipse.osgi.services.remoteserviceadmin" />
-            <param name="bundle.version" value="${org.eclipse.osgi.services.remoteserviceadmin.version}" />
-            <param name="start.level" value="5" />
-            <param name="start" value="" />
+            <param name="start" value="s" />
         </antcall>
     </target>
 

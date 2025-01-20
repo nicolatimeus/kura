@@ -130,6 +130,7 @@
         <module>org.eclipse.kura.rest.network.status.provider</module>
         <module>org.eclipse.kura.cloudconnection.sparkplug.mqtt.provider</module>
         <module>org.eclipse.kura.cloudconnection.kapua.mqtt.provider</module>
+        <module>org.eclipse.kura.remoteservice.discovery.fs.provider</module>
         <module>emulator</module>
         <module>test-util</module>
         <module>tools</module>
@@ -635,7 +636,7 @@
                     <!-- used for generating SCR descriptors in the Maven Build, supports M2E Incremental builds as well -->
                     <groupId>biz.aQute.bnd</groupId>
                     <artifactId>bnd-maven-plugin</artifactId>
-                    <version>${bnd-version}</version>
+                    <version>${bnd.version}</version>
                     <executions>
                         <execution>
                             <goals>
