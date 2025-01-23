@@ -12,26 +12,22 @@
  *******************************************************************************/
 package org.eclipse.kura.example.remoteservice.api;
 
-import org.osgi.annotation.versioning.ProviderType;
+public class SumRequest {
 
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
+    private final int a;
+    private final int b;
 
-@ProviderType
-public interface TestService {
+    public SumRequest(int a, int b) {
+        this.a = a;
+        this.b = b;
+    }
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/ping")
-    public String ping();
+    public int getA() {
+        return a;
+    }
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/sum")
-    public int sum(SumRequest request);
+    public int getB() {
+        return b;
+    }
+
 }

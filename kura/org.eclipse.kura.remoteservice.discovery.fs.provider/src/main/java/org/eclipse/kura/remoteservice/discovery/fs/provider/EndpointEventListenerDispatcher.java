@@ -1,9 +1,22 @@
+/*******************************************************************************
+ * Copyright (c) 2025 Eurotech and/or its affiliates and others
+ * 
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
+ * 
+ * Contributors:
+ *  Eurotech
+ *******************************************************************************/
 package org.eclipse.kura.remoteservice.discovery.fs.provider;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -25,7 +38,7 @@ public class EndpointEventListenerDispatcher {
     private final Map<String, EndpointDescription> endpointDescriptions = new HashMap<>();
     private final Map<EndpointEventListener, FilterState> listenerState = new HashMap<>();
 
-    public synchronized void listenerChanged(final EndpointEventListener listener, final String[] filterStrings) {
+    public synchronized void listenerChanged(final EndpointEventListener listener, final List<String> filterStrings) {
         final Set<Filter> filters = new HashSet<>();
 
         for (final String filterString : filterStrings) {
@@ -63,9 +76,9 @@ public class EndpointEventListenerDispatcher {
 
             final String id = Utils.getId(endpoint);
 
-            final Optional<Filter> matching = match(e.getValue().filters, endpoint);
+            final Optional<Filter> matchingFilter = match(e.getValue().filters, endpoint);
 
-            if (matching.isPresent()) {
+            if (matchingFilter.isPresent()) {
                 final MatchedEndpoint existing = e.getValue().matchedEndpoints.get(id);
 
                 final int eventType;
@@ -76,7 +89,9 @@ public class EndpointEventListenerDispatcher {
                     eventType = EndpointEvent.ADDED;
                 }
 
-                dispatchEvent(e.getKey(), endpoint, eventType, matching.get().toString());
+                dispatchEvent(e.getKey(), endpoint, eventType, matchingFilter.get().toString());
+
+                e.getValue().matchedEndpoints.put(id, new MatchedEndpoint(matchingFilter.get(), endpoint));
 
             } else {
                 final MatchedEndpoint existing = e.getValue().matchedEndpoints.remove(id);
@@ -148,6 +163,9 @@ public class EndpointEventListenerDispatcher {
             final int eventType, final String filter) {
         try {
             final EndpointEvent event = new EndpointEvent(eventType, endpoint);
+
+            logger.debug("dispatching {} to {}", event, listener);
+
             listener.endpointChanged(event, filter);
         } catch (final Exception e) {
             logger.warn("unexpected exception dispatching EndpointEvent", e);

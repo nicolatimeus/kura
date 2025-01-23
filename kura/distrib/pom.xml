@@ -688,6 +688,11 @@
                                     <artifactId>org.eclipse.kura.remoteservice.discovery.fs.provider</artifactId>
                                     <version>${org.eclipse.kura.remoteservice.discovery.fs.provider.version}</version>
                                 </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.eclipse.kura</groupId>
+                                    <artifactId>org.eclipse.kura.remoteservice.distribution.rest.provider</artifactId>
+                                    <version>${org.eclipse.kura.remoteservice.distribution.rest.provider.version}</version>
+                                </artifactItem>
                             </artifactItems>
                             <stripVersion>true</stripVersion>
                             <outputDirectory>${project.basedir}/target/plugins</outputDirectory>
@@ -852,6 +857,7 @@
                                 <move file="target/plugins/org.eclipse.kura.rest.network.status.provider.jar" tofile="target/plugins/org.eclipse.kura.rest.network.status.provider_${org.eclipse.kura.rest.network.status.provider.version}.jar" />
                                 <move file="target/plugins/org.eclipse.kura.db.h2db.provider.jar" tofile="target/plugins/org.eclipse.kura.db.h2db.provider_${org.eclipse.kura.db.h2db.provider.version}.jar" />
                                 <move file="target/plugins/org.eclipse.kura.remoteservice.discovery.fs.provider.jar" tofile="target/plugins/org.eclipse.kura.remoteservice.discovery.fs.provider_${org.eclipse.kura.remoteservice.discovery.fs.provider.version}.jar" />
+                                <move file="target/plugins/org.eclipse.kura.remoteservice.distribution.rest.provider.jar" tofile="target/plugins/org.eclipse.kura.remoteservice.distribution.rest.provider_${org.eclipse.kura.remoteservice.distribution.rest.provider.version}.jar" />
                             </target>
                         </configuration>
                     </execution>

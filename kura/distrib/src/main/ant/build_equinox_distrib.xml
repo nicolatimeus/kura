@@ -2350,6 +2350,12 @@ fi]]>
             <param name="start.level" value="5" />
             <param name="start" value="s" />
         </antcall>
+        <antcall target="install-plugin">
+            <param name="bundle.name" value="org.eclipse.kura.remoteservice.distribution.rest.provider" />
+            <param name="bundle.version" value="${org.eclipse.kura.remoteservice.distribution.rest.provider.version}" />
+            <param name="start.level" value="5" />
+            <param name="start" value="s" />
+        </antcall>
         <!-- Aries deps -->
         <antcall target="install-plugin">
             <param name="bundle.name" value="org.apache.aries.rsa.spi" />
@@ -2376,10 +2382,16 @@ fi]]>
             <param name="start" value="" />
         </antcall>
         <antcall target="install-plugin">
-            <param name="bundle.name" value="org.apache.aries.rsa.provider.tcp" />
-            <param name="bundle.version" value="${org.apache.aries.rsa.provider.tcp.version}" />
+            <param name="bundle.name" value="jersey-proxy-client" />
+            <param name="bundle.version" value="${jersey.version}" />
             <param name="start.level" value="5" />
-            <param name="start" value="s" />
+            <param name="start" value="" />
+        </antcall>
+        <antcall target="install-plugin">
+            <param name="bundle.name" value="byte-buddy" />
+            <param name="bundle.version" value="${byte-buddy.version}" />
+            <param name="start.level" value="5" />
+            <param name="start" value="" />
         </antcall>
     </target>
 

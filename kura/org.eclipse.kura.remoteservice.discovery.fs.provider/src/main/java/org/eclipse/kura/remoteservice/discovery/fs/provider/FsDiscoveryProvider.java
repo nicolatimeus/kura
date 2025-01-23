@@ -1,3 +1,15 @@
+/*******************************************************************************
+ * Copyright (c) 2025 Eurotech and/or its affiliates and others
+ * 
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
+ * 
+ * Contributors:
+ *  Eurotech
+ *******************************************************************************/
 package org.eclipse.kura.remoteservice.discovery.fs.provider;
 
 import java.io.File;
@@ -12,10 +24,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.eclipse.kura.system.SystemService;
@@ -46,19 +60,45 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
     private static final Logger logger = LoggerFactory.getLogger(FsDiscoveryProvider.class);
 
     private final EndpointEventListenerDispatcher dispatcher = new EndpointEventListenerDispatcher();
-    private final List<EndpointEventListener> listeners = new CopyOnWriteArrayList<>();
     private final ServiceRegistration<EndpointEventListener> localEventListener;
     private final String frameworkUUID;
     private final FsWatcher watcher;
     private final File storageRoot;
 
     @Reference(policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MULTIPLE)
-    public void setEndpointEventListener(final EndpointEventListener listener) {
-        this.listeners.add(listener);
+    public void setEndpointEventListener(final EndpointEventListener listener, final Map<String, Object> properties) {
+
+        Object scope = properties.get(EndpointEventListener.ENDPOINT_LISTENER_SCOPE);
+        logger.debug("processing EndpointEventListener {}...", listener);
+
+        if (scope instanceof String[]) {
+            scope = Arrays.asList((String[]) scope);
+        }
+
+        if (scope instanceof List<?>) {
+            final List<String> asStringList = ((List<?>) scope).stream().map(Object::toString)
+                    .collect(Collectors.toList());
+
+            logger.debug("registering EndpointEventListener {}, scope {}...", listener, asStringList);
+            this.dispatcher.listenerChanged(listener, asStringList);
+        } else {
+            logger.warn("ignoring listener with invalid {}: {}", EndpointEventListener.ENDPOINT_LISTENER_SCOPE,
+                    listener);
+        }
+
+    }
+
+    public void updatedEndpointEventListener(final EndpointEventListener listener,
+            final Map<String, Object> properties) {
+
+        logger.debug("updating EndpointEventListener {}...", listener);
+        setEndpointEventListener(listener, properties);
+
     }
 
     public void unsetEndpointEventListener(final EndpointEventListener listener) {
-        this.listeners.remove(listener);
+        logger.debug("removing EndpointEventListener {}", listener);
+        this.dispatcher.removeListener(listener);
     }
 
     @Activate
@@ -85,11 +125,7 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
             throw new ComponentException("failed to open filesystem watcher", e);
         }
 
-        try (final Stream<Path> stream = Files.list(this.storageRoot.toPath())) {
-            stream.map(Path::toFile).filter(f -> f.getName().endsWith("json")).forEach(this::dispatchEndpointChanged);
-        } catch (IOException e) {
-            logger.warn("failed to list dir", e);
-        }
+        withDescriptorFiles(this::dispatchEndpointChanged);
 
     }
 
@@ -101,6 +137,16 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
         } catch (IOException e) {
             logger.warn("failed to close fs watcher", e);
         }
+
+        withDescriptorFiles(f -> {
+            if (isLocalServiceDescriptor(f)) {
+                try {
+                    Files.delete(f.toPath());
+                } catch (IOException e) {
+                    logger.debug("failed to delete {}", f, e);
+                }
+            }
+        });
     }
 
     private static String getDescriptorFileName(final EndpointDescription description) {
@@ -120,11 +166,15 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
         try (final FileOutputStream out = new FileOutputStream(tempFile);
                 final Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
 
+            logger.debug("writing descriptor file {}", destFile);
+
             GSON.toJson(new EndpointDescriptionDTO(description), writer);
             out.flush();
 
             Files.move(tempFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING,
                     StandardCopyOption.ATOMIC_MOVE);
+
+            logger.debug("writing descriptor file {}...done", destFile);
 
         } catch (final Exception e) {
             removeFile(tempFile);
@@ -134,7 +184,13 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
     }
 
     private void removeLocalDescriptor(final EndpointDescription description) {
-        removeFile(getDescriptorFilePath(description));
+        final File path = getDescriptorFilePath(description);
+
+        logger.debug("removing descriptor file {}", path);
+
+        removeFile(path);
+
+        logger.debug("removing descriptor file {}...done", path);
     }
 
     private void removeFile(final File file) {
@@ -191,11 +247,14 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
 
             final EndpointDescription endpoint = endpointDTO.getEndpointDescription(true);
 
-            if (endpoint.getFrameworkUUID().equals(this.frameworkUUID)) {
+            if (isLocalServiceDescriptor(path)) {
+                logger.debug("Ignoring event from local framework {}", path);
                 return;
             }
 
+            logger.debug("dispatching event from file {}...", path);
             dispatcher.endpointChanged(endpoint);
+            logger.debug("dispatching event from file {}...done", path);
 
         } catch (final Exception e) {
             logger.warn("failed to parse endpoint descriptor", e);
@@ -213,6 +272,23 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
         final String id = name.substring(0, name.length() - 5);
 
         dispatcher.endpointRemoved(id);
+    }
+
+    private boolean isLocalServiceDescriptor(final File file) {
+        return file.getName().startsWith(this.frameworkUUID);
+    }
+
+    private Stream<File> getEndpointDescriptorFiles() throws IOException {
+        return Files.list(this.storageRoot.toPath()).map(Path::toFile).filter(f -> f.getName().endsWith("json"));
+    }
+
+    private void withDescriptorFiles(final Consumer<File> consumer) {
+        try (final Stream<File> stream = getEndpointDescriptorFiles()) {
+            stream.forEach(consumer);
+        } catch (IOException e) {
+            logger.warn("failed to list descriptor file directory", e);
+        }
+
     }
 
 }

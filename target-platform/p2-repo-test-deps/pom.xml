@@ -99,11 +99,6 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>net.bytebuddy</groupId>
-                                    <artifactId>byte-buddy</artifactId>
-                                    <version>${byte-buddy.version}</version>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>net.bytebuddy</groupId>
                                     <artifactId>byte-buddy-agent</artifactId>
                                     <version>${byte-buddy.version}</version>
                                 </artifactItem>

@@ -890,6 +890,16 @@
                                     <artifactId>org.apache.aries.rsa.provider.tcp</artifactId>
                                     <version>${org.apache.aries.rsa.provider.tcp.version}</version>
                                 </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.glassfish.jersey.ext</groupId>
+                                    <artifactId>jersey-proxy-client</artifactId>
+                                    <version>${jersey.version}</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>net.bytebuddy</groupId>
+                                    <artifactId>byte-buddy</artifactId>
+                                    <version>${byte-buddy.version}</version>
+                                </artifactItem>
                             </artifactItems>
                             <stripVersion>false</stripVersion>
                             <outputDirectory>${project.basedir}/target/source/plugins</outputDirectory>

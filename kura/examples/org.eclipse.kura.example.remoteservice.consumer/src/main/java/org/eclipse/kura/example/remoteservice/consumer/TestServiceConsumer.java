@@ -1,3 +1,15 @@
+/*******************************************************************************
+ * Copyright (c) 2025 Eurotech and/or its affiliates and others
+ * 
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
+ * 
+ * Contributors:
+ *  Eurotech
+ *******************************************************************************/
 package org.eclipse.kura.example.remoteservice.consumer;
 
 import java.util.concurrent.Executors;
@@ -5,6 +17,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.kura.example.remoteservice.api.SumRequest;
 import org.eclipse.kura.example.remoteservice.api.TestService;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -29,7 +42,7 @@ public class TestServiceConsumer {
 
         logger.info("TestService consumer activated");
 
-        testService.sum(10, 20);
+        testService.sum(new SumRequest(10, 20));
 
         this.future = executor.scheduleWithFixedDelay(this::doPing, 0, 10, TimeUnit.SECONDS);
     }
@@ -37,7 +50,7 @@ public class TestServiceConsumer {
     private void doPing() {
         try {
             logger.info("sending ping...");
-            testService.ping();
+            logger.info("ping result {}", testService.ping());
             logger.info("sending ping...done");
         } catch (final Exception e) {
             logger.warn("failed to send ping", e);

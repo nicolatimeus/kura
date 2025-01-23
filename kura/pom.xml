@@ -131,6 +131,7 @@
         <module>org.eclipse.kura.cloudconnection.sparkplug.mqtt.provider</module>
         <module>org.eclipse.kura.cloudconnection.kapua.mqtt.provider</module>
         <module>org.eclipse.kura.remoteservice.discovery.fs.provider</module>
+        <module>org.eclipse.kura.remoteservice.distribution.rest.provider</module>
         <module>emulator</module>
         <module>test-util</module>
         <module>tools</module>
