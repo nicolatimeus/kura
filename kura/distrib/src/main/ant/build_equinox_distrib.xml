@@ -2393,6 +2393,36 @@ fi]]>
             <param name="start.level" value="5" />
             <param name="start" value="" />
         </antcall>
+        <antcall target="install-plugin">
+            <param name="bundle.name" value="jackson-core" />
+            <param name="bundle.version" value="${jackson.version}" />
+            <param name="start.level" value="3" />
+            <param name="start" value="" />
+        </antcall>
+        <antcall target="install-plugin">
+            <param name="bundle.name" value="jackson-annotations" />
+            <param name="bundle.version" value="${jackson.version}" />
+            <param name="start.level" value="3" />
+            <param name="start" value="" />
+        </antcall>
+        <antcall target="install-plugin">
+            <param name="bundle.name" value="jackson-databind" />
+            <param name="bundle.version" value="${jackson.version}" />
+            <param name="start.level" value="3" />
+            <param name="start" value="" />
+        </antcall>
+        <antcall target="install-plugin">
+            <param name="bundle.name" value="jackson-jakarta-rs-base" />
+            <param name="bundle.version" value="${jackson.version}" />
+            <param name="start.level" value="3" />
+            <param name="start" value="" />
+        </antcall>
+        <antcall target="install-plugin">
+            <param name="bundle.name" value="jackson-jakarta-rs-json-provider" />
+            <param name="bundle.version" value="${jackson.version}" />
+            <param name="start.level" value="3" />
+            <param name="start" value="" />
+        </antcall>
     </target>
 
 </project>

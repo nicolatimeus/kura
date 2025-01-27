@@ -17,8 +17,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.kura.example.remoteservice.api.SumRequest;
-import org.eclipse.kura.example.remoteservice.api.TestService;
+import org.eclipse.kura.example.remoteservice.api.TestServiceApi;
+import org.eclipse.kura.example.remoteservice.api.model.SumRequest;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -31,13 +31,13 @@ public class TestServiceConsumer {
 
     private static final Logger logger = LoggerFactory.getLogger(TestServiceConsumer.class);
 
-    private final TestService testService;
+    private final TestServiceApi testService;
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> future;
 
     @Activate
-    public TestServiceConsumer(final @Reference TestService testService) {
+    public TestServiceConsumer(final @Reference TestServiceApi testService) {
         this.testService = testService;
 
         logger.info("TestService consumer activated");

@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.aries.rsa.spi.Endpoint;
+import org.eclipse.kura.remoteservice.distribution.rest.provider.whiteboard.Constants;
 import org.eclipse.kura.system.SystemService;
 import org.objectweb.asm.Opcodes;
 import org.osgi.framework.BundleContext;
@@ -61,12 +62,10 @@ public class ExportHandler {
             return null;
         }
 
-        final String relativePath = "/remote/" + kuraServicePid;
-
         final Object wrapper;
 
         try {
-            wrapper = buildWrapper(service, relativePath, exportedInterfaces);
+            wrapper = buildWrapper(service, kuraServicePid.toString(), exportedInterfaces);
         } catch (final Exception e) {
             logger.warn("failed to define wrapper for {}", service, e);
             return null;
@@ -74,12 +73,15 @@ public class ExportHandler {
 
         final Map<String, Object> whiteboardProperties = new HashMap<>();
         whiteboardProperties.put(JakartarsWhiteboardConstants.JAKARTA_RS_RESOURCE, true);
+        whiteboardProperties.put(JakartarsWhiteboardConstants.JAKARTA_RS_APPLICATION_SELECT,
+                "(" + JakartarsWhiteboardConstants.JAKARTA_RS_NAME + "=" + Constants.APPLICATION_NAME + ")");
 
         final ServiceRegistration<?> reg = bundleContext.registerService(Object.class, wrapper,
                 FrameworkUtil.asDictionary(whiteboardProperties));
 
         final Map<String, Object> endpointProperties = new HashMap<>(effectiveProperties);
-        endpointProperties.put(RemoteConstants.ENDPOINT_ID, "https://" + hostname + "/services" + relativePath);
+        endpointProperties.put(RemoteConstants.ENDPOINT_ID,
+                "https://" + hostname + "/services/" + Constants.APPLICATION_BASE + "/" + kuraServicePid);
         endpointProperties.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS,
                 new String[] { RestDistributionProvider.CONFIG_TYPE });
 

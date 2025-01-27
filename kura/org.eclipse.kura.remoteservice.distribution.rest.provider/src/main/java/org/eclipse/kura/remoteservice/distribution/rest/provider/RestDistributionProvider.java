@@ -19,6 +19,7 @@ import java.util.Map;
 
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.aries.rsa.spi.Endpoint;
+import org.eclipse.kura.remoteservice.distribution.rest.provider.whiteboard.Constants;
 import org.eclipse.kura.system.SystemService;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -43,11 +44,11 @@ public class RestDistributionProvider implements DistributionProvider {
     public RestDistributionProvider(final @Reference SystemService systemService,
             final @Reference(cardinality = ReferenceCardinality.MULTIPLE, //
                     policyOption = ReferencePolicyOption.GREEDY, //
-                    target = "(osgi.jakartars.extension=*)") //
+                    target = "(" + Constants.KURA_REMOTESERVICES_EXTENSION_PROP_NAME + "=*)") //
             Collection<MessageBodyReader<?>> messageBodyReaders,
             final @Reference(cardinality = ReferenceCardinality.MULTIPLE, //
                     policyOption = ReferencePolicyOption.GREEDY, //
-                    target = "(osgi.jakartars.extension=*)") //
+                    target = "(" + Constants.KURA_REMOTESERVICES_EXTENSION_PROP_NAME + "=*)") //
             Collection<MessageBodyWriter<?>> messageBodyWriters) {
 
         final List<Object> providers = new ArrayList<>();

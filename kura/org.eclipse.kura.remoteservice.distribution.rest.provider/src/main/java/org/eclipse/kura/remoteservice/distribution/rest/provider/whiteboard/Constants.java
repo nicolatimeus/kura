@@ -10,24 +10,14 @@
  * Contributors:
  *  Eurotech
  *******************************************************************************/
-package org.eclipse.kura.example.remoteservice.api;
+package org.eclipse.kura.remoteservice.distribution.rest.provider.whiteboard;
 
-public class SumRequest {
+public class Constants {
 
-    private final int a;
-    private final int b;
+    public static final String APPLICATION_BASE = "remote";
+    public static final String APPLICATION_NAME = "kura.remoteservices";
+    public static final String KURA_REMOTESERVICES_EXTENSION_PROP_NAME = "kura.remoteservices.extension";
 
-    public SumRequest(int a, int b) {
-        this.a = a;
-        this.b = b;
+    private Constants() {
     }
-
-    public int getA() {
-        return a;
-    }
-
-    public int getB() {
-        return b;
-    }
-
 }

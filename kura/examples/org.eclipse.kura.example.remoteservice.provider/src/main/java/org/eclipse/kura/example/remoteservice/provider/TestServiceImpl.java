@@ -12,14 +12,14 @@
  *******************************************************************************/
 package org.eclipse.kura.example.remoteservice.provider;
 
-import org.eclipse.kura.example.remoteservice.api.SumRequest;
-import org.eclipse.kura.example.remoteservice.api.TestService;
+import org.eclipse.kura.example.remoteservice.api.TestServiceApi;
+import org.eclipse.kura.example.remoteservice.api.model.SumRequest;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component(property = { "service.exported.interfaces=*", "kura.service.pid=TestServiceImpl" })
-public class TestServiceImpl implements TestService {
+public class TestServiceImpl implements TestServiceApi {
 
     private static final Logger logger = LoggerFactory.getLogger(TestServiceImpl.class);
 
@@ -31,7 +31,7 @@ public class TestServiceImpl implements TestService {
     }
 
     @Override
-    public int sum(final SumRequest req) {
+    public Integer sum(final SumRequest req) {
         final int result = req.getA() + req.getB();
 
         logger.info("{} + {} = {}", req.getA(), req.getB(), result);
