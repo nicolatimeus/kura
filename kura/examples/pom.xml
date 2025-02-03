@@ -102,6 +102,7 @@
         <module>org.eclipse.kura.example.remoteservice.api</module>
         <module>org.eclipse.kura.example.remoteservice.consumer</module>
         <module>org.eclipse.kura.example.remoteservice.provider</module>
+        <module>org.eclipse.kura.example.remoteservice.shim</module>
         <module>test</module>
     </modules>
 

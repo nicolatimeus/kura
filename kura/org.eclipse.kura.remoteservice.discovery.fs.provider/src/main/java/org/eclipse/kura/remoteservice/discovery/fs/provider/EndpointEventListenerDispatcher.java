@@ -35,8 +35,8 @@ public class EndpointEventListenerDispatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(EndpointEventListenerDispatcher.class);
 
-    private final Map<String, EndpointDescription> endpointDescriptions = new HashMap<>();
-    private final Map<EndpointEventListener, FilterState> listenerState = new HashMap<>();
+    protected final Map<String, EndpointDescription> endpointDescriptions = new HashMap<>();
+    protected final Map<EndpointEventListener, FilterState> listenerState = new HashMap<>();
 
     public synchronized void listenerChanged(final EndpointEventListener listener, final List<String> filterStrings) {
         final Set<Filter> filters = new HashSet<>();
@@ -116,6 +116,9 @@ public class EndpointEventListenerDispatcher {
         }
 
         endpointDescriptions.remove(id);
+    }
+
+    public void close() {
     }
 
     private Optional<Filter> match(final Collection<Filter> filters, final EndpointDescription endpoint) {

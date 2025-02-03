@@ -59,7 +59,7 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
     private static final Gson GSON = new Gson();
     private static final Logger logger = LoggerFactory.getLogger(FsDiscoveryProvider.class);
 
-    private final EndpointEventListenerDispatcher dispatcher = new EndpointEventListenerDispatcher();
+    private final EndpointEventListenerDispatcher dispatcher;
     private final ServiceRegistration<EndpointEventListener> localEventListener;
     private final String frameworkUUID;
     private final FsWatcher watcher;
@@ -104,7 +104,10 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
     @Activate
     public FsDiscoveryProvider(final @Reference SystemService systemService) {
         final BundleContext context = FrameworkUtil.getBundle(FsDiscoveryProvider.class).getBundleContext();
+
         this.frameworkUUID = context.getProperty(Constants.FRAMEWORK_UUID);
+
+        dispatcher = new KuraServicePidFilteringDispatcher(context);
 
         this.localEventListener = new LocalEndpointListner().register(context);
 
@@ -137,6 +140,8 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
         } catch (IOException e) {
             logger.warn("failed to close fs watcher", e);
         }
+
+        this.dispatcher.close();
 
         withDescriptorFiles(f -> {
             if (isLocalServiceDescriptor(f)) {
@@ -240,12 +245,10 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
     }
 
     private void dispatchEndpointChanged(final File path) {
-        try (final FileInputStream in = new FileInputStream(path);
-                final Reader r = new InputStreamReader(in, StandardCharsets.UTF_8)) {
 
-            final EndpointDescriptionDTO endpointDTO = GSON.fromJson(r, EndpointDescriptionDTO.class);
+        try {
 
-            final EndpointDescription endpoint = endpointDTO.getEndpointDescription(true);
+            final EndpointDescription endpoint = tryLoadEndpoint(path, 10);
 
             if (isLocalServiceDescriptor(path)) {
                 logger.debug("Ignoring event from local framework {}", path);
@@ -259,6 +262,33 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
         } catch (final Exception e) {
             logger.warn("failed to parse endpoint descriptor", e);
         }
+    }
+
+    private EndpointDescription tryLoadEndpoint(final File path, final int retries) throws IOException {
+
+        for (int i = 0; i < retries; i++) {
+
+            try (final FileInputStream in = new FileInputStream(path);
+                    final Reader r = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+
+                final EndpointDescriptionDTO endpointDTO = GSON.fromJson(r, EndpointDescriptionDTO.class);
+
+                if (endpointDTO != null) {
+                    return endpointDTO.getEndpointDescription(true);
+                }
+            } catch (final Exception e) {
+                logger.debug("attempt to load {} failed", path, e);
+            }
+
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        throw new IOException("Failed to load descriptor at " + path + " after " + retries + " retries");
     }
 
     @Override

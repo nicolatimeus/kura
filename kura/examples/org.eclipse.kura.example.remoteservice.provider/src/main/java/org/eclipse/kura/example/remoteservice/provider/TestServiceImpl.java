@@ -27,7 +27,7 @@ public class TestServiceImpl implements TestServiceApi {
     public String ping() {
         logger.info("Ping called");
 
-        return "pong";
+        return "\"pong\"";
     }
 
     @Override
