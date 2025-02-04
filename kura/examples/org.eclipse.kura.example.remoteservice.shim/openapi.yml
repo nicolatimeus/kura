@@ -1,0 +1,87 @@
+openapi: 3.0.1
+info:
+  title: CloudPublisher API
+  description: This is an Remote service api for CloudPublisher
+  version: 1.0.0
+paths:
+  /publisher/publish:
+    post:
+      operationId: publish
+      tags:
+        - Publisher
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KuraMessage'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+components:
+  schemas:
+    KuraMessage:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Property'
+        payload:
+          $ref: '#/components/schemas/KuraPayload'
+    KuraPayload:
+      type: object
+      properties:
+        metrics:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Property'
+    Property:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - STRING
+            - INTEGER
+            - LONG
+      discriminator:
+        propertyName: type
+        mapping:
+          STRING: '#/components/schemas/StringProperty'
+          INTEGER: '#/components/schemas/IntegerProperty'
+          LONG: '#/components/schemas/LongProperty'
+    StringProperty:
+      allOf:
+        - $ref: '#/components/schemas/Property'
+        - type: object
+          required:
+            - value
+          properties:
+            value:
+              type: string
+    IntegerProperty:
+      allOf:
+        - $ref: '#/components/schemas/Property'
+        - type: object
+          required:
+            - value
+          properties:
+            value:
+              type: integer
+              format: int32
+    LongProperty:
+      allOf:
+        - $ref: '#/components/schemas/Property'
+        - type: object
+          required:
+            - value
+          properties:
+            value:
+              type: integer
+              format: int64
