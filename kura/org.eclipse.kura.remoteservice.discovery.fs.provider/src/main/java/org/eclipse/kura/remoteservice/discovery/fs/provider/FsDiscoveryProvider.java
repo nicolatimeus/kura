@@ -130,6 +130,8 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
 
         withDescriptorFiles(this::dispatchEndpointChanged);
 
+        Runtime.getRuntime().addShutdownHook(new Thread(this::cleanupOwnDescriptors));
+
     }
 
     @Deactivate
@@ -143,6 +145,10 @@ public class FsDiscoveryProvider implements FsWatcher.Listener {
 
         this.dispatcher.close();
 
+        cleanupOwnDescriptors();
+    }
+
+    private void cleanupOwnDescriptors() {
         withDescriptorFiles(f -> {
             if (isLocalServiceDescriptor(f)) {
                 try {

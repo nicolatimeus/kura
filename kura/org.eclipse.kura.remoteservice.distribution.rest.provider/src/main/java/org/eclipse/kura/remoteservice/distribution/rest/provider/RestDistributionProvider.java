@@ -31,8 +31,9 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
 import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.RuntimeDelegate;
 
-@Component
+@Component(reference = @Reference(name = "RuntimeDelegate", service = RuntimeDelegate.class))
 public class RestDistributionProvider implements DistributionProvider {
 
     public static final String CONFIG_TYPE = "kura.rest";

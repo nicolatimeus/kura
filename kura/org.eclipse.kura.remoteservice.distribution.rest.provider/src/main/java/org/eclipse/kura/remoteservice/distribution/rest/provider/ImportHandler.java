@@ -19,6 +19,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -49,15 +50,17 @@ public class ImportHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ImportHandler.class);
 
-    public Object importEndpoint(final ClassLoader cl, final BundleContext consumerContext, final Class[] interfaces,
+    public Object importEndpoint(final ClassLoader cl, final BundleContext consumerContext, final Class<?>[] interfaces,
             final EndpointDescription endpoint) {
 
         try {
 
             final Map<String, Object> properties = endpoint.getProperties();
-            final Object url = properties.get(RemoteConstants.ENDPOINT_ID);
 
-            if (!(url instanceof String)) {
+            final Optional<KuraEndpointId> kuraId = extractProperty(properties, RemoteConstants.ENDPOINT_ID)
+                    .flatMap(KuraEndpointId::fromJson);
+
+            if (!kuraId.isPresent()) {
                 return null;
             }
 
@@ -66,9 +69,6 @@ public class ImportHandler {
             for (final Object provider : providers) {
                 clientBuilder.register(provider);
             }
-
-            final WebTarget target = clientBuilder.hostnameVerifier((s1, s2) -> true).sslContext(trustAllSSLContext())
-                    .build().target((String) url);
 
             final ByteBuddy byteBuddy = new ByteBuddy();
 
@@ -93,6 +93,10 @@ public class ImportHandler {
 
             for (final Class<?> intf : interfaces) {
 
+                final WebTarget target = clientBuilder.hostnameVerifier((s1, s2) -> true)
+                        .sslContext(trustAllSSLContext()).build().target(kuraId.get().getBaseURL() + "/"
+                                + intf.getName().replaceAll("[.]", "/") + "/" + kuraId.get().getId());
+
                 final Object proxy = WebResourceFactory.newResource(intf, target);
                 final String fieldName = "proxy" + i;
 
@@ -106,6 +110,16 @@ public class ImportHandler {
             logger.warn("failed to import {}", endpoint, e);
             return null;
         }
+    }
+
+    private static Optional<String> extractProperty(final Map<String, Object> properties, final String key) {
+        final Object result = properties.get(key);
+
+        if (!(result instanceof String)) {
+            return Optional.empty();
+        }
+
+        return Optional.of((String) result);
     }
 
     private SSLContext trustAllSSLContext() throws NoSuchAlgorithmException, KeyManagementException {
